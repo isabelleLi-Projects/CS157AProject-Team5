@@ -11,7 +11,7 @@
     <packaging>war</packaging>
 
     <properties>
-        <!-- Tells Maven to compile using Java 17. Adjust if you use a different JDK version. -->
+        <!-- java -version -->
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
