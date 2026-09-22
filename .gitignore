@@ -1,0 +1,17 @@
+# Ignore macOS system files
+*.DS_Store
+.DS_Store
+
+# Ignore compiled Java classes and build artifacts
+*.class
+target/
+build/
+
+# Ignore Eclipse IDE workspace configuration
+.metadata/
+.classpath
+.project
+.settings/
+
+# Ignore VS Code configuration if preferred
+.vscode/
