@@ -1,0 +1,13 @@
+{
+    "git.ignoreLimitWarning": true,
+
+    
+    "java.project.sourcePaths": [
+        "src/main/java"
+    ],
+    "java.project.referencedLibraries": [
+        "/Users/isabelleli/tomcat/apache-tomcat-11.0.25/lib/servlet-api.jar",
+        "/Users/isabelleli/tomcat/apache-tomcat-11.0.25/lib/mysql-connector-j-26.7.0.jar"
+    ]
+  
+}
