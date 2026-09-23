@@ -2,8 +2,8 @@ package com.studyfinder.util;
 
 import com.studyfinder.model.SessionUser;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 /**
  * Starts, reads, and ends the logged-in session.

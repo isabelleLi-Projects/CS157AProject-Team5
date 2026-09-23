@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import com.studyfinder.model.SessionUser;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Writes small JSON responses without needing a JSON library.
