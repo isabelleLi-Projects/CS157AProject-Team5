@@ -1,4 +1,6 @@
 package com.studyfinder.model;
+import java.sql.Timestamp;
+
 
 /**
  * One row from the Users table, joined with its role name.
@@ -12,6 +14,10 @@ public class User {
     private String passwordHash;
     private String status;
     private String roleName;
+    private boolean emailVerified;
+    private Timestamp createdAt;
+
+    
 
     public int getUserId() {
         return userId;
@@ -60,4 +66,15 @@ public class User {
     public void setRoleName(String roleName) {
         this.roleName = roleName;
     }
+    
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
 }

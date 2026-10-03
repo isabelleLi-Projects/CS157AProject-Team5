@@ -27,3 +27,22 @@ Deploy `backend-v0.1/target/SJSUStudyFinder.war` to Tomcat and open:
 The login, signup, guest, and logout actions still use servlets because those
 actions receive POST requests and create or destroy the HTTP session. That is
 separate from loading the study-spot data.
+## Authentication email setup
+
+Signup uses the JSP `login.jsp` page and sends a six-digit verification code before creating the user. Configure these environment variables in the Eclipse Tomcat server's **Arguments > Environment** tab:
+
+```text
+STUDYFINDER_SMTP_HOST=smtp.gmail.com
+STUDYFINDER_SMTP_PORT=587
+STUDYFINDER_SMTP_USER=your-email@gmail.com
+STUDYFINDER_SMTP_PASSWORD=your-gmail-app-password
+STUDYFINDER_SMTP_FROM=your-email@gmail.com
+```
+
+The SMTP account needs an app password; do not use the normal Gmail password. The database connection variables remain:
+
+```text
+STUDYFINDER_DB_URL=jdbc:mysql://127.0.0.1:3306/studyfinder?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+STUDYFINDER_DB_USER=root
+STUDYFINDER_DB_PASSWORD=your_mysql_password
+```

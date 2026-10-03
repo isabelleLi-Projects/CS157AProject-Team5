@@ -1,20 +1,17 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import spartan from '../assets/logo/spartan.png'
-import {
-  AuthError,
-  continueAsGuest,
-  logIn,
-  signUp,
-  type AuthField,
-  type SessionUser,
-} from '../api/auth'
-
-type Mode = 'login' | 'signup'
-type FieldName = AuthField | 'confirmPassword'
+type Mode = 'login' | 'signup' | 'verify'
+type FieldName = 'fullName' | 'email' | 'password' | 'confirmPassword'
 type FieldErrors = Partial<Record<FieldName, string>>
 
-type LoginPageProps = {
-  onAuthenticated: (user: SessionUser) => void
+declare global {
+  interface Window {
+    authPage?: boolean
+    authMode?: Mode
+    authError?: string
+    authSuccess?: string
+    studyFinderContext?: string
+  }
 }
 
 // Same rules the server enforces in AuthValidator.java.
@@ -22,8 +19,8 @@ const SJSU_EMAIL = /^[^\s@]+@sjsu\.edu$/i
 const MIN_PASSWORD_LENGTH = 8
 const FIELD_ORDER: FieldName[] = ['fullName', 'email', 'password', 'confirmPassword']
 
-export default function LoginPage({ onAuthenticated }: LoginPageProps) {
-  const [mode, setMode] = useState<Mode>('login')
+export default function LoginPage() {
+  const [mode, setMode] = useState<Mode>(window.authMode ?? 'login')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -34,6 +31,7 @@ export default function LoginPage({ onAuthenticated }: LoginPageProps) {
   const [pending, setPending] = useState<'submit' | 'guest' | null>(null)
 
   const isSignup = mode === 'signup'
+  const isVerify = mode === 'verify'
   const busy = pending !== null
 
   const switchMode = (next: Mode) => {
@@ -84,7 +82,7 @@ export default function LoginPage({ onAuthenticated }: LoginPageProps) {
     }
   }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setFormError('')
 
@@ -96,33 +94,20 @@ export default function LoginPage({ onAuthenticated }: LoginPageProps) {
     }
 
     setPending('submit')
-    try {
-      const user = isSignup
-        ? await signUp(fullName.trim(), email.trim(), password)
-        : await logIn(email.trim(), password)
-      onAuthenticated(user)
-    } catch (error) {
-      if (error instanceof AuthError && error.field) {
-        const serverErrors = { [error.field]: error.message }
-        setFieldErrors(serverErrors)
-        focusFirstError(serverErrors)
-      } else {
-        setFormError(error instanceof Error ? error.message : 'Something went wrong. Try again.')
-      }
-      setPending(null)
-    }
+    event.currentTarget.submit()
   }
 
-  const handleGuest = async () => {
-    setFormError('')
-    setFieldErrors({})
-    setPending('guest')
-    try {
-      onAuthenticated(await continueAsGuest())
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Something went wrong. Try again.')
-      setPending(null)
-    }
+  const handleGuest = () => {
+    const form = document.createElement('form')
+    form.method = 'post'
+    form.action = `${window.studyFinderContext ?? ''}/login.jsp`
+    const modeInput = document.createElement('input')
+    modeInput.type = 'hidden'
+    modeInput.name = 'mode'
+    modeInput.value = 'guest'
+    form.appendChild(modeInput)
+    document.body.appendChild(form)
+    form.submit()
   }
 
   const passwordToggle = (
@@ -136,6 +121,29 @@ export default function LoginPage({ onAuthenticated }: LoginPageProps) {
       {showPassword ? 'Hide' : 'Show'}
     </button>
   )
+
+  const serverError = window.authError ?? ''
+  const serverSuccess = window.authSuccess ?? ''
+
+  if (isVerify) {
+    return (
+      <AuthShell>
+        <h1 className="font-display text-3xl text-main leading-tight">Verify your email</h1>
+        <p className="text-sm text-muted mt-2 mb-7">Enter the six-digit code sent to your SJSU email address.</p>
+        {serverSuccess && <p className="auth-success text-sm rounded-xl px-4 py-3 mb-4">{serverSuccess}</p>}
+        {serverError && <p role="alert" className="auth-alert text-sm rounded-xl px-4 py-3 mb-4">{serverError}</p>}
+        <form method="post" action={`${window.studyFinderContext ?? ''}/login.jsp`} className="space-y-4">
+          <input type="hidden" name="mode" value="verify" />
+          <div>
+            <label htmlFor="auth-code" className="block text-sm font-medium text-main mb-1.5">Access code</label>
+            <input id="auth-code" name="code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoFocus placeholder="123456" className="auth-input" />
+          </div>
+          <button type="submit" className="btn-primary w-full py-3 text-sm mt-2">Verify email</button>
+        </form>
+        <p className="text-sm text-secondary mt-5"><a className="btn-link" href={`${window.studyFinderContext ?? ''}/login.jsp?view=signup`}>Start over</a></p>
+      </AuthShell>
+    )
+  }
 
   return (
     <div className="app-background min-h-screen md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
@@ -165,11 +173,12 @@ export default function LoginPage({ onAuthenticated }: LoginPageProps) {
           </h1>
           <p className="text-sm text-muted mt-2 mb-7">
             {isSignup
-              ? "Only @sjsu.edu emails can sign up. You'll be logged in right away."
+              ? "Only @sjsu.edu emails can sign up. Verify your email before your account is created."
               : 'Use your SJSU email to see every study spot and add reports.'}
           </p>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <form method="post" action={`${window.studyFinderContext ?? ''}/login.jsp`} onSubmit={handleSubmit} noValidate className="space-y-4">
+            <input type="hidden" name="mode" value={isSignup ? 'signup' : 'login'} />
             {isSignup && (
               <TextField
                 id="auth-fullName"
@@ -228,9 +237,9 @@ export default function LoginPage({ onAuthenticated }: LoginPageProps) {
               />
             )}
 
-            {formError && (
+            {(formError || serverError) && (
               <p role="alert" className="auth-alert text-sm rounded-xl px-4 py-3">
-                {formError}
+                {formError || serverError}
               </p>
             )}
 
@@ -244,7 +253,7 @@ export default function LoginPage({ onAuthenticated }: LoginPageProps) {
                   ? 'Creating account…'
                   : 'Logging in…'
                 : isSignup
-                  ? 'Create account'
+                  ? 'Send verification code'
                   : 'Log in'}
             </button>
           </form>
@@ -277,6 +286,26 @@ export default function LoginPage({ onAuthenticated }: LoginPageProps) {
             Guests can browse public spots like the Student Union and King Library. Log in to see
             every building and add your own reports.
           </p>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+function AuthShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="app-background min-h-screen md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      <aside className="primary-background hidden md:flex flex-col justify-between p-10 lg:p-14">
+        <Brand light />
+        <div className="max-w-md">
+          <p className="font-display text-5xl lg:text-6xl leading-[1.05] tracking-tight">Know before you walk over.</p>
+          <p className="mt-5 text-base leading-relaxed text-white/80 max-w-sm">Students report noise, crowds, and outlets from where they&apos;re sitting, so you can pick a spot that fits how you study.</p>
+        </div>
+      </aside>
+      <main className="flex items-start md:items-center justify-center px-6 py-10 md:py-16">
+        <div className="w-full max-w-sm">
+          <div className="md:hidden mb-10"><Brand /></div>
+          {children}
         </div>
       </main>
     </div>

@@ -20,9 +20,11 @@ public class UserDAO {
 
     private static final String FIND_BY_EMAIL =
             "SELECT u.user_id, u.full_name, u.email, u.password_hash, "
+            + "u.email_verified, u.created_at, "
             + "u.account_status AS status, "
             + "CASE WHEN a.user_id IS NOT NULL THEN 'admin' "
-            + "WHEN s.user_id IS NOT NULL THEN 'student' ELSE 'student' END AS role_name "
+            + "WHEN s.user_id IS NOT NULL THEN 'student' "
+            + "ELSE 'student' END AS role_name "
             + "FROM users u "
             + "LEFT JOIN students s ON u.user_id = s.user_id "
             + "LEFT JOIN administrators a ON u.user_id = a.user_id "
@@ -32,8 +34,8 @@ public class UserDAO {
             "SELECT 1 FROM users WHERE email = ?";
 
     private static final String CREATE_USER =
-            "INSERT INTO users (full_name, email, password_hash, account_status) "
-            + "VALUES (?, ?, ?, 'active')";
+            "INSERT INTO users (full_name, email, password_hash, email_verified, account_status) "
+            + "VALUES (?, ?, ?, 1, 'active')";
 
     private static final String CREATE_STUDENT =
             "INSERT INTO students (user_id, student_id) VALUES (?, ?)";
@@ -55,8 +57,10 @@ public class UserDAO {
                 user.setFullName(rs.getString("full_name"));
                 user.setEmail(rs.getString("email"));
                 user.setPasswordHash(rs.getString("password_hash"));
+                user.setEmailVerified(rs.getBoolean("email_verified"));
                 user.setStatus(rs.getString("status"));
                 user.setRoleName(rs.getString("role_name"));
+                user.setCreatedAt(rs.getTimestamp("created_at"));
                 return user;
             }
         }

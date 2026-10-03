@@ -15,6 +15,13 @@ export default function Header({
   onNavChange,
   onLoginToggle,
 }: HeaderProps) {
+  const logout = () => {
+    const form = document.createElement('form')
+    form.method = 'post'
+    form.action = `${window.studyFinderContext ?? ''}/logout.jsp`
+    document.body.appendChild(form)
+    form.submit()
+  }
   return (
     <nav className="surface-background standard-border sticky top-0 z-50 border-x-0 border-t-0">
       <div className="px-6 h-14 flex items-center justify-between">
@@ -39,7 +46,7 @@ export default function Header({
           ))}
         </div>
 
-        <button onClick={onLoginToggle} className="btn-link text-sm">
+        <button onClick={isLoggedIn ? logout : onLoginToggle} className="btn-link text-sm">
           {isLoggedIn ? 'Log out' : 'Log in'}
         </button>
       </div>

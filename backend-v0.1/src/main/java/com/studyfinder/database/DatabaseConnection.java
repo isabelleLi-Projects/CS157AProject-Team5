@@ -21,13 +21,11 @@ public class DatabaseConnection {
     );
 
     public static Connection getConnection() throws SQLException {
-    	try {
-            // Force Tomcat to load and register the driver right here
+        try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Critical Error: MySQL Driver class not found!", e);
+        } catch (ClassNotFoundException exception) {
+            throw new SQLException("MySQL Connector/J is not on the web application's classpath.", exception);
         }
-        
         return DriverManager.getConnection(URL, USERNAME, PASSWORD);
     }
 }

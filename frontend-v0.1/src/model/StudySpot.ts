@@ -15,10 +15,16 @@ export interface StudySpot {
   img: string
   tags: string[]
   open: boolean
+  building?: string
+  capacity?: number
+  photoPath?: string
 }
 
 export interface Reward {
+  id?: number
   icon: string
   label: string
   pts: number
+  description?: string
+  stock?: number
 }

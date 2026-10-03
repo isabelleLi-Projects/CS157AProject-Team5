@@ -7,7 +7,7 @@ type RewardsPreviewProps = {
 }
 
 export default function RewardsPreview({ points, rewards, onViewRewards }: RewardsPreviewProps) {
-  const nextReward = rewards[0]
+  const nextReward = rewards[0] ?? { label: 'a reward', pts: 0 }
   const ptsToNext = nextReward.pts - points
   const progress = Math.min((points / nextReward.pts) * 100, 100)
 
@@ -36,10 +36,12 @@ export default function RewardsPreview({ points, rewards, onViewRewards }: Rewar
 
       <div className="flex gap-2">
         {rewards.map((reward) => (
-          <div key={reward.label} className="reward-background flex-1 rounded-xl p-2 text-center">
+          <form key={reward.label} method="post" action={`${window.studyFinderContext ?? ''}/redeem.jsp`} className="reward-background flex-1 rounded-xl p-2 text-center">
+            <input type="hidden" name="rewardId" value={reward.id ?? ''} />
             <span className="text-base">{reward.icon}</span>
             <p className="text-[9px] text-white/70 mt-0.5">{reward.pts} pts</p>
-          </div>
+            <button type="submit" disabled={!reward.id || reward.stock === 0 || points < reward.pts} className="text-[10px] underline mt-1 disabled:opacity-40">Redeem</button>
+          </form>
         ))}
       </div>
     </section>

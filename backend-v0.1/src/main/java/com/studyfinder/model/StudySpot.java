@@ -1,5 +1,8 @@
 package com.studyfinder.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StudySpot {
     private int spotId;
     private String name;
@@ -10,6 +13,12 @@ public class StudySpot {
     private double longitude;
     private boolean active;
     private String accessType;
+    private String photoPath;
+    private String noise;
+    private String crowdedness;
+    private String outlets;
+    private String updated;
+    private final List<String> amenities = new ArrayList<>();
 
     public int getSpotId() {
         return spotId;
@@ -82,4 +91,17 @@ public class StudySpot {
     public void setAccessType(String accessType) {
         this.accessType = accessType;
     }
+
+    public String getPhotoPath() { return photoPath; }
+    public void setPhotoPath(String photoPath) { this.photoPath = photoPath; }
+    public String getNoise() { return noise; }
+    public void setNoise(String noise) { this.noise = noise; }
+    public String getCrowdedness() { return crowdedness; }
+    public void setCrowdedness(String crowdedness) { this.crowdedness = crowdedness; }
+    public String getOutlets() { return outlets; }
+    public void setOutlets(String outlets) { this.outlets = outlets; }
+    public String getUpdated() { return updated; }
+    public void setUpdated(String updated) { this.updated = updated; }
+    public List<String> getAmenities() { return amenities; }
+    public void addAmenity(String amenity) { if (amenity != null && !amenity.isBlank()) amenities.add(amenity); }
 }

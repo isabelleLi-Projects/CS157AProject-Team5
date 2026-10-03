@@ -1,8 +1,3 @@
-import MLK from '../assets/study_spots/MLK.jpg'
-import STUDENTUNION from '../assets/study_spots/StudentUnion.jpeg'
-import MCQ from '../assets/study_spots/MCQ.png'
-import ISB from '../assets/study_spots/ISB.jpeg'
-
 import type { Reward, StudySpot } from '../model/StudySpot'
 
 
@@ -16,19 +11,32 @@ type DatabaseStudySpot = {
   latitude: number
   longitude: number
   accessType: string
+  photoPath?: string
+  noise?: string
+  crowdedness?: string
+  outlets?: string
+  updated?: string
+  amenities?: string[]
 }
 
 declare global {
   interface Window {
     studySpots?: DatabaseStudySpot[]
+    rewards?: Array<{ id: number; label: string; description?: string; pts: number; stock: number }>
+    studentPoints?: number
+    studyFinderContext?: string
   }
 }
 
-const images: Record<string, string> = {
-  'MLK Library': MLK,
-  'Student Union': STUDENTUNION,
-  'Macquerrie Hall': MCQ,
-  'Interdisciplinary Science Building': ISB,
+const context = window.studyFinderContext ?? ''
+const photoUrl = (path?: string) => {
+  if (!path) return ''
+  const clean = path.replace(/^\//, '')
+  return `${context}/${clean.startsWith('assets/') ? clean : `assets/${clean}`}`
+}
+const level = (value?: string): 'low' | 'med' | 'high' => {
+  const text = (value ?? '').toLowerCase()
+  return text.includes('quiet') || text === 'low' || text === '1' ? 'low' : text.includes('high') || text === 'high' || text === '3' ? 'high' : 'med'
 }
 
 //getting the data from the jsp
@@ -37,26 +45,25 @@ export const STUDY_SPOTS: StudySpot[] = (window.studySpots ?? []).map(
     id: spot.spotId,
     name: spot.name,
     location: spot.location,
-    noise: 'Unknown',
-    noiseLevel: 'med',
-    crowded: 'Unknown',
-    crowdLevel: 'med',
-    outlets: 'Unknown',
-    updated: 'Just now',
+    noise: spot.noise ?? 'Unknown',
+    noiseLevel: level(spot.noise),
+    crowded: spot.crowdedness ?? 'Unknown',
+    crowdLevel: level(spot.crowdedness),
+    outlets: spot.outlets === '1' ? 'Available' : spot.outlets === '0' ? 'None' : (spot.outlets ?? 'Unknown'),
+    updated: spot.updated ?? 'No reports',
     rating: 0,
-    img: images[spot.name],
-    tags: [spot.accessType],
+    img: photoUrl(spot.photoPath),
+    tags: [spot.accessType, ...(spot.amenities ?? [])].filter(Boolean),
     open: true,
+    building: spot.building,
+    capacity: spot.capacity,
+    photoPath: spot.photoPath,
   })
 )
 
 export const RECENT_SPOTS = STUDY_SPOTS.slice(0, 2)
 
-export const REWARDS: Reward[] = [
-  { icon: '🎁', label: 'Free Amazon Gift Card', pts: 1000 },
-  { icon: '🛒', label: 'Target Gift Card', pts: 800 },
-  { icon: '🍕', label: 'DoorDash Gift Card', pts: 500 },
-]
+export const REWARDS: Reward[] = (window.rewards ?? []).map((reward) => ({ ...reward, icon: '🎁' }))
 
 export const FILTERS = ['All', 'Quiet', 'Open Now', 'Near Me', 'Outlets']
 

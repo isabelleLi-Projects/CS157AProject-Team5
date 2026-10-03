@@ -15,21 +15,18 @@ export default function MainLayout() {
   const [isLoggedIn, setIsLoggedIn] = useState(true)
   const [locationDismissed, setLocationDismissed] = useState(false)
   const [search, setSearch] = useState('')
+  const [activeFilter, setActiveFilter] = useState('All')
   const [activeNav, setActiveNav] = useState('Home')
 
   const filteredSpots = useMemo(() => {
     const query = search.toLowerCase().trim()
 
-    if (!query) {
-      return STUDY_SPOTS
-    }
-
-    return STUDY_SPOTS.filter((spot) =>
-      [spot.name, spot.location, ...spot.tags].some((value) =>
-        value.toLowerCase().includes(query),
-      ),
-    )
-  }, [search])
+    return STUDY_SPOTS.filter((spot) => {
+      const matchesSearch = !query || [spot.name, spot.location, ...spot.tags].some((value) => value.toLowerCase().includes(query))
+      const matchesFilter = activeFilter === 'All' || (activeFilter === 'Quiet' && spot.noiseLevel === 'low') || (activeFilter === 'Open Now' && spot.open) || (activeFilter === 'Outlets' && spot.outlets === 'Available') || activeFilter === 'Near Me'
+      return matchesSearch && matchesFilter
+    })
+  }, [search, activeFilter])
 
   const navigateTo = (nav: string) => {
     setActiveNav(nav)
@@ -75,7 +72,7 @@ export default function MainLayout() {
 
             {isLoggedIn && (
               <RewardsPreview
-                points={340}
+                points={window.studentPoints ?? 0}
                 rewards={REWARDS}
                 onViewRewards={() => navigateTo('Rewards')}
               />
@@ -106,7 +103,7 @@ export default function MainLayout() {
                 </button>
               </div>
 
-              <SpotFilters filters={FILTERS} />
+              <SpotFilters filters={FILTERS} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
               <div className="grid grid-cols-1 gap-4">
                 {filteredSpots.map((spot) => (
@@ -162,7 +159,7 @@ export default function MainLayout() {
             />
 
             <div className="mt-5">
-              <SpotFilters filters={FILTERS} />
+            <SpotFilters filters={FILTERS} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
             </div>
 
             <div className="mt-6 mb-3 flex items-center justify-between">
@@ -223,7 +220,7 @@ export default function MainLayout() {
                   </p>
 
                   <p className="font-display text-4xl text-primary mt-1">
-                    340
+                    {window.studentPoints ?? 0}
                   </p>
 
                   <p className="text-xs text-muted mt-2">
@@ -233,7 +230,7 @@ export default function MainLayout() {
                 </div>
 
                 <RewardsPreview
-                  points={340}
+                  points={window.studentPoints ?? 0}
                   rewards={REWARDS}
                   onViewRewards={() => {}}
                 />
