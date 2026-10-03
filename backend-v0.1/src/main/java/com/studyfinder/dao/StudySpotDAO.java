@@ -11,27 +11,19 @@ import java.util.List;
 
 public class StudySpotDAO {
 
-    public List<StudySpot> getAllStudySpots() {
+    public List<StudySpot> getAllStudySpots() throws SQLException {
 
         List<StudySpot> studySpots = new ArrayList<>();
 
         String sql =
             "SELECT * "
-            + "FROM StudySpots "
+            + "FROM studyspots "
             + "WHERE is_active = 1 "
             + "ORDER BY name";
         
-            try {
-            
-            Connection con =
-                DatabaseConnection.getConnection();
-
-            PreparedStatement stmt =
-                con.prepareStatement(sql);
-
-            ResultSet rs =
-                stmt.executeQuery();
-            
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement stmt = con.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 StudySpot spot = new StudySpot();
@@ -49,15 +41,6 @@ public class StudySpotDAO {
                 studySpots.add(spot);
             }
 
-            rs.close();
-            stmt.close();
-            con.close();
-
-        } catch (SQLException e) {
-            System.out.println(
-                "SQLException caught: "
-                + e.getMessage()
-            );
         }
 
         return studySpots;

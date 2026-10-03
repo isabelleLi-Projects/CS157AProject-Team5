@@ -19,22 +19,24 @@ public class UserDAO {
     private static final int DUPLICATE_ENTRY = 1062;
 
     private static final String FIND_BY_EMAIL =
-            "SELECT u.user_id, u.full_name, u.email, u.password_hash, u.status, r.role_name "
-            + "FROM Users u JOIN Roles r ON u.role_id = r.role_id "
+            "SELECT u.user_id, u.full_name, u.email, u.password_hash, "
+            + "u.account_status AS status, "
+            + "CASE WHEN a.user_id IS NOT NULL THEN 'admin' "
+            + "WHEN s.user_id IS NOT NULL THEN 'student' ELSE 'student' END AS role_name "
+            + "FROM users u "
+            + "LEFT JOIN students s ON u.user_id = s.user_id "
+            + "LEFT JOIN administrators a ON u.user_id = a.user_id "
             + "WHERE u.email = ?";
 
     private static final String EMAIL_EXISTS =
-            "SELECT 1 FROM Users WHERE email = ?";
+            "SELECT 1 FROM users WHERE email = ?";
 
-    // INSERT ... SELECT inserts nothing if the 'student' role is missing,
-    // which gives a clear error instead of a NULL role_id.
-    // Accounts start as 'active' until email verification is built.
+    private static final String CREATE_USER =
+            "INSERT INTO users (full_name, email, password_hash, account_status) "
+            + "VALUES (?, ?, ?, 'active')";
+
     private static final String CREATE_STUDENT =
-            "INSERT INTO Users (role_id, full_name, email, password_hash, status) "
-            + "SELECT role_id, ?, ?, ?, 'active' FROM Roles WHERE role_name = 'student'";
-
-    private static final String RECORD_LOGIN =
-            "UPDATE Users SET last_login_at = CURRENT_TIMESTAMP WHERE user_id = ?";
+            "INSERT INTO students (user_id, student_id) VALUES (?, ?)";
 
     /** Returns the user with this email, or null if there is none. Email must already be lowercase. */
     public User findByEmail(String email) throws SQLException {
@@ -72,35 +74,44 @@ public class UserDAO {
         }
     }
 
-    /** Creates a student account and returns its new user_id. */
+    /** Creates the users and students rows together as one transaction. */
     public int createStudent(String fullName, String email, String passwordHash) throws SQLException {
         try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement stmt = con.prepareStatement(CREATE_STUDENT, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement userStmt = con.prepareStatement(CREATE_USER, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement studentStmt = con.prepareStatement(CREATE_STUDENT)) {
 
-            stmt.setString(1, fullName);
-            stmt.setString(2, email);
-            stmt.setString(3, passwordHash);
+            con.setAutoCommit(false);
+            try {
+                userStmt.setString(1, fullName);
+                userStmt.setString(2, email);
+                userStmt.setString(3, passwordHash);
+                userStmt.executeUpdate();
 
-            if (stmt.executeUpdate() != 1) {
-                throw new SQLException("The 'student' role is missing from the Roles table. Run sql/auth_schema.sql.");
-            }
-
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
+                int userId;
+                try (ResultSet keys = userStmt.getGeneratedKeys()) {
+                    if (!keys.next()) throw new SQLException("MySQL did not return the new user_id.");
+                    userId = keys.getInt(1);
                 }
+
+                studentStmt.setInt(1, userId);
+                // The current signup form does not collect student_id.
+                // Use the generated user_id as a temporary numeric student_id.
+                studentStmt.setString(2, String.valueOf(userId));
+                studentStmt.executeUpdate();
+                con.commit();
+                return userId;
+            } catch (SQLException exception) {
+                con.rollback();
+                throw exception;
+            } finally {
+                con.setAutoCommit(true);
             }
-            throw new SQLException("MySQL did not return the new user_id.");
         }
     }
 
-    public void recordLogin(int userId) throws SQLException {
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement stmt = con.prepareStatement(RECORD_LOGIN)) {
-
-            stmt.setInt(1, userId);
-            stmt.executeUpdate();
-        }
+    // The current users table has no last_login_at column.
+    public void recordLogin(int userId) {
+        // Intentionally empty until last-login tracking is added to the schema.
     }
 
     /** True when an INSERT failed because the email is already taken. */
