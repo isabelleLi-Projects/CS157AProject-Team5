@@ -13,7 +13,35 @@ The study-spots page is served directly by `study-spots.jsp`. It loads data thro
 `StudySpotService`, which calls `StudySpotDAO`; the DAO is the only layer that
 executes SQL. No study-spot servlet is required.
 
-Before starting Tomcat, configure the database connection for the backend:
+
+## Database Configuration
+
+Each team member must configure their own local MySQL connection.
+These commands must be run in the same terminal session used to start the backend or Tomcat:
+
+### Option 1: Configure Tomcat in Eclipse
+
+1. Open the **Servers** view in Eclipse.
+2. Right-click the Tomcat server.
+3. Select **Open**.
+4. Click **Open launch configuration**.
+5. Select the **Environment** tab.
+6. Click **New** and add the following variables:
+
+| Variable | Value |
+|---|---|
+| `STUDYFINDER_DB_URL` | `jdbc:mysql://127.0.0.1:3306/studyfinder_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC` |
+| `STUDYFINDER_DB_USER` | `root` |
+| `STUDYFINDER_DB_PASSWORD` | Your local MySQL password |
+
+Do not include quotation marks around the values.
+
+7. Click **Apply**.
+8. Restart Tomcat.
+
+### Option 2: Configure Variables in the Terminal
+
+Before starting the backend or Tomcat, run:
 
 ```bash
 export STUDYFINDER_DB_URL='jdbc:mysql://127.0.0.1:3306/studyfinder_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
@@ -21,6 +49,19 @@ export STUDYFINDER_DB_USER='root'
 export STUDYFINDER_DB_PASSWORD='your_mysql_password'
 ```
 
+Then start the backend or Tomcat from the same terminal session.
+
+The terminal variables are temporary and must be configured again when opening a new terminal.
+
+### Important Notes
+
+- Replace `your_mysql_password` with your own local MySQL password.
+- Do not commit real passwords or database credentials to Git.
+- The database name `studyfinder_db` must match the database name in `sql/schema.sql`.
+- Each team member must configure their own local MySQL connection.
+
+
+## Open this webpage
 Deploy `backend-v0.1/target/SJSUStudyFinder.war` to Tomcat and open:
 `http://localhost:8080/SJSUStudyFinder/study-spots.jsp`
 
@@ -45,4 +86,28 @@ The SMTP account needs an app password; do not use the normal Gmail password. Th
 STUDYFINDER_DB_URL=jdbc:mysql://127.0.0.1:3306/studyfinder?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 STUDYFINDER_DB_USER=root
 STUDYFINDER_DB_PASSWORD=your_mysql_password
+```
+
+# StudyFinder Backend
+
+## Requirements
+
+- Java
+- Maven
+- MySQL
+- MySQL Connector/J
+- Eclipse or another Java IDE
+
+## Database Setup
+
+1. Start MySQL.
+2a. From the project folder, run to create and delete tables:
+
+```bash
+mysql -u root -p < sql/schema.sql
+```
+
+2b. From the project folder, run to insert sample data:
+```bash
+mysql -u root -p < sql/sample_data.sql
 ```
