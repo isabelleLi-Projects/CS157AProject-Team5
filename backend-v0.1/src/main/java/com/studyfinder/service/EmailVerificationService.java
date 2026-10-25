@@ -1,12 +1,12 @@
 package com.studyfinder.service;
 
+import java.util.Properties;
+
 import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-
-import java.util.Properties;
 
 /** Sends the one-time SJSU email signup code through the configured SMTP account. */
 public class EmailVerificationService {

@@ -1,16 +1,16 @@
 package com.studyfinder.dao;
 
-import com.studyfinder.database.DatabaseConnection;
-import com.studyfinder.model.Reward;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashMap;
+
+import com.studyfinder.database.DatabaseConnection;
+import com.studyfinder.model.Reward;
 
 /** Database access for rewards and student dashboard data. */
 public class StudyFinderDAO {
@@ -27,12 +27,12 @@ public class StudyFinderDAO {
     }
 
     public List<Map<String, Object>> getReviews() throws SQLException { return rows("SELECT user_id, spot_id, review_text, is_visible FROM reviews ORDER BY created_at DESC"); }
-    public List<Map<String, Object>> getActivityLogs() throws SQLException { return rows("SELECT user_id, action_type, target_type, target_id FROM activitylogs ORDER BY created_at DESC LIMIT 100"); }
+    public List<Map<String, Object>> getActivityLogs() throws SQLException { return rows("SELECT user_id, action_type, target_type, target_id FROM activity_logs ORDER BY created_at DESC LIMIT 100"); }
     public List<Map<String, Object>> getVerifications() throws SQLException { return rows("SELECT report_id, user_id, result FROM verifies ORDER BY verified_at DESC"); }
 
     public List<Reward> getActiveRewards() throws SQLException {
         List<Reward> rewards = new ArrayList<>();
-        String sql = "SELECT reward_id, reward_name, description, point_cost, stock_quantity "
+        String sql = "SELECT reward_id, reward_name, description, points_required AS point_cost, stock_quantity "
                 + "FROM rewards WHERE is_active = 1 ORDER BY point_cost";
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement stmt = con.prepareStatement(sql);
@@ -62,7 +62,7 @@ public class StudyFinderDAO {
     }
 
     public void redeemReward(int userId, int rewardId) throws SQLException {
-        String rewardSql = "SELECT point_cost, stock_quantity FROM rewards "
+        String rewardSql = "SELECT points_required AS point_cost, stock_quantity FROM rewards "
                 + "WHERE reward_id = ? AND is_active = 1 FOR UPDATE";
         String pointsSql = "SELECT points FROM students WHERE user_id = ? FOR UPDATE";
         String updatePoints = "UPDATE students SET points = points - ? WHERE user_id = ?";

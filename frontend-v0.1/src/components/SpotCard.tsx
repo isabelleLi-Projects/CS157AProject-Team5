@@ -11,7 +11,7 @@ export default function SpotCard({ spot }: SpotCardProps) {
   return (
     <article className="spot-card rounded-2xl">
       <div className="relative">
-        <img src={spot.img} alt={spot.name} className="spot-image" />
+      <img src={spot.img} alt={spot.name} className="spot-image" />
         <div className="absolute top-2 right-2">
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${spot.open ? 'badge-open' : 'badge-closed'}`}>
             {spot.open ? 'Open' : 'Closed'}

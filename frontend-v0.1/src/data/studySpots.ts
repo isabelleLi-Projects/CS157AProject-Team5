@@ -12,6 +12,7 @@ type DatabaseStudySpot = {
   longitude: number
   accessType: string
   photoPath?: string
+  img?: string
   noise?: string
   crowdedness?: string
   outlets?: string
@@ -29,11 +30,8 @@ declare global {
 }
 
 const context = window.studyFinderContext ?? ''
-const photoUrl = (path?: string) => {
-  if (!path) return ''
-  const clean = path.replace(/^\//, '')
-  return `${context}/${clean.startsWith('assets/') ? clean : `assets/${clean}`}`
-}
+
+
 const level = (value?: string): 'low' | 'med' | 'high' => {
   const text = (value ?? '').toLowerCase()
   return text.includes('quiet') || text === 'low' || text === '1' ? 'low' : text.includes('high') || text === 'high' || text === '3' ? 'high' : 'med'
@@ -52,7 +50,7 @@ export const STUDY_SPOTS: StudySpot[] = (window.studySpots ?? []).map(
     outlets: spot.outlets === '1' ? 'Available' : spot.outlets === '0' ? 'None' : (spot.outlets ?? 'Unknown'),
     updated: spot.updated ?? 'No reports',
     rating: 0,
-    img: photoUrl(spot.photoPath),
+    img: spot.img ?? '',
     tags: [spot.accessType, ...(spot.amenities ?? [])].filter(Boolean),
     open: true,
     building: spot.building,

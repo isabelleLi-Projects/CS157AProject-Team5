@@ -41,12 +41,17 @@ Do not include quotation marks around the values.
 
 ### Option 2: Configure Variables in the Terminal
 
-Before starting the backend or Tomcat, run:
+Before starting the backend or Tomcat, run these commands in your backend folder:
 
 ```bash
-export STUDYFINDER_DB_URL='jdbc:mysql://127.0.0.1:3306/studyfinder_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
+export STUDYFINDER_DB_URL='jdbc:mysql://127.0.0.1:3306/studyfinder?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
 export STUDYFINDER_DB_USER='root'
 export STUDYFINDER_DB_PASSWORD='your_mysql_password'
+export STUDYFINDER_SMTP_HOST='smtp.gmail.com'
+export STUDYFINDER_SMTP_PORT='587'
+export STUDYFINDER_SMTP_USER='your-email@gmail.com'
+export STUDYFINDER_SMTP_PASSWORD='your-gmail-app-password'
+export STUDYFINDER_SMTP_FROM='your-email@gmail.com'
 ```
 
 Then start the backend or Tomcat from the same terminal session.

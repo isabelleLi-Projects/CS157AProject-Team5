@@ -52,8 +52,26 @@ window.studyFinderContext = "<%= js(request.getContextPath()) %>";
 window.currentUser = { id: <%= currentUser.id() == null ? "null" : currentUser.id() %>, name: "<%= js(currentUser.name()) %>", email: "<%= js(currentUser.email()) %>", role: "<%= js(currentUser.role()) %>" };
 window.studentPoints = <%= points %>;
 window.studySpots = [
-<% for (int i = 0; i < studySpots.size(); i++) { StudySpot spot = studySpots.get(i); %>
-{ spotId:<%= spot.getSpotId() %>, name:"<%= js(spot.getName()) %>", building:"<%= js(spot.getBuilding()) %>", location:"<%= js(spot.getLocation()) %>", capacity:<%= spot.getCapacity() %>, latitude:<%= spot.getLatitude() %>, longitude:<%= spot.getLongitude() %>, accessType:"<%= js(spot.getAccessType()) %>", photoPath:"<%= js(spot.getPhotoPath()) %>", noise:"<%= js(spot.getNoise()) %>", crowdedness:"<%= js(spot.getCrowdedness()) %>", outlets:"<%= js(spot.getOutlets()) %>", updated:"<%= js(spot.getUpdated()) %>", amenities:[<% for (int j=0;j<spot.getAmenities().size();j++) { %>"<%= js(spot.getAmenities().get(j)) %>"<%= j+1<spot.getAmenities().size()?",":"" %><% } %>] }<%= i+1<studySpots.size()?",":"" %>
+<% for (int i = 0; i < studySpots.size(); i++) {
+    StudySpot spot = studySpots.get(i);
+
+    String imageUrl = "";
+    if (spot.getPhotoPath() != null && !spot.getPhotoPath().isBlank()) {
+        imageUrl = request.getContextPath()
+                + "/assets/study_spots/"
+                + spot.getPhotoPath();
+    }
+%>
+{ spotId:<%= spot.getSpotId() %>,
+  name:"<%= js(spot.getName()) %>",
+  building:"<%= js(spot.getBuilding()) %>",
+  location:"<%= js(spot.getLocation()) %>",
+  capacity:<%= spot.getCapacity() %>,
+  latitude:<%= spot.getLatitude() %>,
+  longitude:<%= spot.getLongitude() %>,
+  accessType:"<%= js(spot.getAccessType()) %>",
+  photoPath:"<%= js(spot.getPhotoPath()) %>",
+  img:"<%= js(imageUrl) %>", noise:"<%= js(spot.getNoise()) %>", crowdedness:"<%= js(spot.getCrowdedness()) %>", outlets:"<%= js(spot.getOutlets()) %>", updated:"<%= js(spot.getUpdated()) %>", amenities:[<% for (int j=0;j<spot.getAmenities().size();j++) { %>"<%= js(spot.getAmenities().get(j)) %>"<%= j+1<spot.getAmenities().size()?",":"" %><% } %>] }<%= i+1<studySpots.size()?",":"" %>
 <% } %>];
 window.rewards = [
 <% for (int i=0;i<rewards.size();i++) { Reward reward=rewards.get(i); %>
@@ -63,5 +81,5 @@ window.reviews = [<% for (int i=0;i<reviews.size();i++) { Map<String,Object> row
 window.activityLogs = [<% for (int i=0;i<activityLogs.size();i++) { Map<String,Object> row=activityLogs.get(i); %>{userId:<%= row.get("user_id") %>,actionType:"<%= js((String) row.get("action_type")) %>",targetType:"<%= js((String) row.get("target_type")) %>",targetId:<%= row.get("target_id") == null ? "null" : row.get("target_id") %>}<%= i+1<activityLogs.size()?",":"" %><% } %>];
 window.verifications = [<% for (int i=0;i<verifications.size();i++) { Map<String,Object> row=verifications.get(i); %>{reportId:<%= row.get("report_id") %>,userId:<%= row.get("user_id") %>,result:"<%= js((String) row.get("result")) %>"}<%= i+1<verifications.size()?",":"" %><% } %>];
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-DnrjtiLu.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-3-XuJjgT.js"></script>
 </body></html>

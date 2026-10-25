@@ -1,196 +1,259 @@
--- MySQL dump 10.13  Distrib 8.0.46, for macos15 (arm64)
---
--- Host: 127.0.0.1    Database: studyfinder
--- ------------------------------------------------------
--- Server version	26.7.0
+USE studyfinder;
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
-SET @@SESSION.SQL_LOG_BIN= 0;
+SET FOREIGN_KEY_CHECKS = 0;
 
---
--- GTID state at the beginning of the backup 
---
+INSERT INTO `activity_logs` VALUES (1,1,'CREATE','REPORT',1,'Submitted a crowd-level report.','2026-09-20 09:00:00'),
+(2,2,'CREATE','REVIEW',2,'Submitted a study spot review.','2026-09-20 10:30:00'),
+(3,3,'REDEEM','REWARD',3,'Redeemed a campus coffee voucher.','2026-09-21 12:00:00'),
+(4,11,'UPDATE','REPORT',1,'Reviewed a student report.','2026-09-21 13:00:00'),
+(5,4,'CREATE','REPORT',4,'Reported available study space.','2026-09-21 12:00:00'),
+(6,5,'CREATE','REVIEW',5,'Reviewed a group study room.','2026-09-22 13:30:00'),
+(7,12,'UPDATE','STUDYSPOT',5,'Updated study spot information.','2026-09-23 08:00:00'),
+(8,8,'VERIFY','REPORT',8,'Verified a crowd report.','2026-09-23 16:00:00'),
+(9,9,'REDEEM','REWARD',9,'Redeemed an exam care package.','2026-09-24 11:30:00'),
+(10,13,'UPDATE','REWARD',10,'Updated reward stock quantity.','2026-09-24 17:00:00');
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '0bedf63c-a57c-11f1-8bbe-787b0295e6c3:1-218';
+INSERT INTO `administrators` VALUES (11,'super_admin'),
+(12,'location_manager'),
+(13,'report_moderator'),
+(14,'reward_manager'),
+(15,'activity_monitor'),
+(16,'location_manager'),
+(17,'report_moderator'),
+(18,'reward_manager'),
+(19,'activity_monitor'),
+(20,'super_admin');
 
---
--- Dumping data for table `activity_logs`
---
+INSERT INTO `amenities` VALUES (1,'Electrical Outlets','Accessible outlets for charging devices.',1),
+(2,'Wi-Fi','SJSU wireless internet access.',1),
+(3,'Whiteboards','Whiteboards for studying or group work.',1),
+(4,'Computers','Computers available for student use.',1),
+(5,'Printers','Printer access near the study area.',1),
+(6,'Air Conditioning','Air-conditioned indoor study space.',1),
+(7,'Natural Lighting','Study area with windows or natural light.',1),
+(8,'Quiet Area','Designed for quiet individual study.',1),
+(9,'Group Tables','Tables suitable for group collaboration.',1),
+(10,'Food Nearby','Food or beverages available nearby.',1);
 
-LOCK TABLES `activity_logs` WRITE;
-/*!40000 ALTER TABLE `activity_logs` DISABLE KEYS */;
-INSERT INTO `activity_logs` VALUES (1,1,'CREATE','REPORT',1,'Submitted a crowd-level report.','2026-09-20 09:00:00'),(2,2,'CREATE','REVIEW',2,'Submitted a study spot review.','2026-09-20 10:30:00'),(3,3,'REDEEM','REWARD',3,'Redeemed a campus coffee voucher.','2026-09-21 12:00:00'),(4,11,'UPDATE','REPORT',1,'Reviewed a student report.','2026-09-21 13:00:00'),(5,4,'CREATE','REPORT',4,'Reported available study space.','2026-09-21 12:00:00'),(6,5,'CREATE','REVIEW',5,'Reviewed a group study room.','2026-09-22 13:30:00'),(7,12,'UPDATE','STUDYSPOT',5,'Updated study spot information.','2026-09-23 08:00:00'),(8,8,'VERIFY','REPORT',8,'Verified a crowd report.','2026-09-23 16:00:00'),(9,9,'REDEEM','REWARD',9,'Redeemed an exam care package.','2026-09-24 11:30:00'),(10,13,'UPDATE','REWARD',10,'Updated reward stock quantity.','2026-09-24 17:00:00');
-/*!40000 ALTER TABLE `activity_logs` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `building_hours` VALUES (1,'Friday','07:00:00','21:00:00'),
+(1,'Monday','07:00:00','01:00:00'),
+(1,'Saturday','09:00:00','21:00:00'),
+(1,'Sunday','10:00:00','01:00:00'),
+(1,'Thursday','07:00:00','01:00:00'),
+(1,'Tuesday','07:00:00','01:00:00'),
+(1,'Wednesday','07:00:00','01:00:00'),
+(2,'Friday','07:00:00','20:00:00'),
+(2,'Monday','07:00:00','23:00:00'),
+(2,'Saturday','08:00:00','20:00:00'),
+(2,'Sunday','12:00:00','20:00:00'),
+(2,'Thursday','07:00:00','23:00:00'),
+(2,'Tuesday','07:00:00','23:00:00'),
+(2,'Wednesday','07:00:00','23:00:00'),
+(3,'Friday','07:00:00','22:00:00'),
+(3,'Monday','07:00:00','22:00:00'),
+(3,'Saturday','10:00:00','20:00:00'),
+(3,'Sunday','10:00:00','20:00:00'),
+(3,'Thursday','07:00:00','22:00:00'),
+(3,'Tuesday','07:00:00','22:00:00'),
+(3,'Wednesday','07:00:00','22:00:00'),
+(4,'Friday','07:00:00','22:00:00'),
+(4,'Monday','07:00:00','22:00:00'),
+(4,'Saturday','08:00:00','18:00:00'),
+(4,'Sunday','08:00:00','18:00:00'),
+(4,'Thursday','07:00:00','22:00:00'),
+(4,'Tuesday','07:00:00','22:00:00'),
+(4,'Wednesday','07:00:00','22:00:00'),
+(5,'Friday','07:00:00','22:00:00'),
+(5,'Monday','07:00:00','22:00:00'),
+(5,'Saturday','08:00:00','18:00:00'),
+(5,'Sunday','08:00:00','18:00:00'),
+(5,'Thursday','07:00:00','22:00:00'),
+(5,'Tuesday','07:00:00','22:00:00'),
+(5,'Wednesday','07:00:00','22:00:00'),
+(6,'Friday','07:00:00','22:00:00'),
+(6,'Monday','07:00:00','22:00:00'),
+(6,'Saturday','08:00:00','18:00:00'),
+(6,'Sunday','08:00:00','18:00:00'),
+(6,'Thursday','07:00:00','22:00:00'),
+(6,'Tuesday','07:00:00','22:00:00'),
+(6,'Wednesday','07:00:00','22:00:00'),
+(7,'Friday','08:30:00','16:30:00'),
+(7,'Monday','08:30:00','17:00:00'),
+(7,'Saturday','08:30:00','16:30:00'),
+(7,'Sunday','08:30:00','16:30:00'),
+(7,'Thursday','08:30:00','17:00:00'),
+(7,'Tuesday','08:30:00','17:00:00'),
+(7,'Wednesday','08:30:00','17:00:00'),
+(8,'Friday','07:00:00','22:00:00'),
+(8,'Monday','07:00:00','22:00:00'),
+(8,'Saturday','08:00:00','18:00:00'),
+(8,'Sunday','08:00:00','18:00:00'),
+(8,'Thursday','07:00:00','22:00:00'),
+(8,'Tuesday','07:00:00','22:00:00'),
+(8,'Wednesday','07:00:00','22:00:00'),
+(9,'Friday','08:00:00','17:00:00'),
+(9,'Monday','08:00:00','17:00:00'),
+(9,'Saturday','08:00:00','17:00:00'),
+(9,'Sunday','08:00:00','17:00:00'),
+(9,'Thursday','08:00:00','17:00:00'),
+(9,'Tuesday','08:00:00','17:00:00'),
+(9,'Wednesday','08:00:00','17:00:00'),
+(10,'Friday','07:00:00','22:00:00'),
+(10,'Monday','07:00:00','22:00:00'),
+(10,'Saturday','08:00:00','18:00:00'),
+(10,'Sunday','08:00:00','18:00:00'),
+(10,'Thursday','07:00:00','22:00:00'),
+(10,'Tuesday','07:00:00','22:00:00'),
+(10,'Wednesday','07:00:00','22:00:00');
 
---
--- Dumping data for table `administrators`
---
+INSERT INTO `buildings` VALUES (1,'KING','Dr. Martin Luther King, Jr. Library'),
+(2,'SU','Student Union'),
+(3,'DC','Dining Commons'),
+(4,'ENG','Engineering Building'),
+(5,'BBC','Boccardo Business Complex'),
+(6,'SCI','Science Building'),
+(7,'HB','Health Building'),
+(8,'SPXC','Spartan Complex Central'),
+(9,'SSC','Student Services Center'),
+(10,'CC','Computer Center');
 
-LOCK TABLES `administrators` WRITE;
-/*!40000 ALTER TABLE `administrators` DISABLE KEYS */;
-INSERT INTO `administrators` VALUES (11,'super_admin'),(12,'location_manager'),(13,'report_moderator'),(14,'reward_manager'),(15,'activity_monitor'),(16,'location_manager'),(17,'report_moderator'),(18,'reward_manager'),(19,'activity_monitor'),(20,'super_admin');
-/*!40000 ALTER TABLE `administrators` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `moderates` VALUES (1,11,1,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),
+(2,11,2,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32'),
+(3,11,3,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),
+(4,11,4,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32'),
+(5,11,5,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),
+(6,11,6,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32'),
+(7,11,7,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),
+(8,11,8,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32'),
+(9,11,9,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),
+(10,11,10,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32');
 
---
--- Dumping data for table `amenities`
---
+INSERT INTO `provides` VALUES (1,1,'Outlets beside most tables.'),
+(2,8,'Quiet zone with individual desks.'),
+(3,9,'Large tables available for groups.'),
+(4,3,'Whiteboards near the lobby.'),
+(5,1,'Outlets along the walls.'),
+(6,7,'Large windows provide natural lighting.'),
+(7,2,'Strong Wi-Fi signal reported by students.'),
+(8,9,'Group table in the center of the room.'),
+(9,4,'Computers available for student use.'),
+(10,10,'Food and drinks are available nearby.');
 
-LOCK TABLES `amenities` WRITE;
-/*!40000 ALTER TABLE `amenities` DISABLE KEYS */;
-INSERT INTO `amenities` VALUES (1,'Electrical Outlets','Accessible outlets for charging devices.',1),(2,'Wi-Fi','SJSU wireless internet access.',1),(3,'Whiteboards','Whiteboards for studying or group work.',1),(4,'Computers','Computers available for student use.',1),(5,'Printers','Printer access near the study area.',1),(6,'Air Conditioning','Air-conditioned indoor study space.',1),(7,'Natural Lighting','Study area with windows or natural light.',1),(8,'Quiet Area','Designed for quiet individual study.',1),(9,'Group Tables','Tables suitable for group collaboration.',1),(10,'Food Nearby','Food or beverages available nearby.',1);
-/*!40000 ALTER TABLE `amenities` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `redeems` VALUES (1,1,1,50,'completed','2026-09-20 10:00:00'),
+(2,2,4,100,'completed','2026-09-20 11:00:00'),
+(3,3,3,150,'completed','2026-09-21 12:00:00'),
+(4,4,8,75,'completed','2026-09-21 13:00:00'),
+(5,5,2,250,'completed','2026-09-22 14:00:00'),
+(6,6,1,50,'completed','2026-09-22 15:00:00'),
+(7,7,5,125,'pending','2026-09-23 10:30:00'),
+(8,8,7,175,'completed','2026-09-23 16:00:00'),
+(9,9,9,300,'completed','2026-09-24 11:30:00'),
+(10,10,10,350,'pending','2026-09-24 17:00:00');
 
---
--- Dumping data for table `building_hours`
---
+INSERT INTO `reports` VALUES (1,1,1,'Moderate','Crowded',1,'None','Many students were studying near the entrance.','2026-09-20 09:00:00',3.20),
+(2,2,2,'Quiet','Available',1,'None','Good location for individual studying.','2026-09-20 10:00:00',8.50),
+(3,3,3,'Loud','Crowded',1,'Low','Conversation was noticeable near the lounge.','2026-09-21 11:00:00',12.75),
+(4,4,4,'Moderate','Available',1,'None','Several open tables were available.','2026-09-21 12:00:00',5.40),
+(5,5,5,'Quiet','Available',1,'None','Good room for group project meetings.','2026-09-22 13:00:00',18.00),
+(6,6,6,'Moderate','Available',0,'None','Comfortable seating but no nearby outlets.','2026-09-22 14:00:00',2.10),
+(7,7,7,'Quiet','Available',1,'None','Very quiet and lightly occupied.','2026-09-23 09:30:00',25.50),
+(8,8,8,'Moderate','Crowded',1,'None','Room was mostly occupied in the afternoon.','2026-09-23 15:00:00',7.80),
+(9,9,9,'Moderate','Available',1,'None','Computers and tables were available.','2026-09-24 10:30:00',15.25),
+(10,10,10,'Quiet','Available',1,'None','Bright and comfortable study area.','2026-09-24 16:00:00',10.00);
 
-LOCK TABLES `building_hours` WRITE;
-/*!40000 ALTER TABLE `building_hours` DISABLE KEYS */;
-INSERT INTO `building_hours` VALUES (1,'Friday','07:00:00','21:00:00'),(1,'Monday','07:00:00','01:00:00'),(1,'Saturday','09:00:00','21:00:00'),(1,'Sunday','10:00:00','01:00:00'),(1,'Thursday','07:00:00','01:00:00'),(1,'Tuesday','07:00:00','01:00:00'),(1,'Wednesday','07:00:00','01:00:00'),(2,'Friday','07:00:00','20:00:00'),(2,'Monday','07:00:00','23:00:00'),(2,'Saturday','08:00:00','20:00:00'),(2,'Sunday','12:00:00','20:00:00'),(2,'Thursday','07:00:00','23:00:00'),(2,'Tuesday','07:00:00','23:00:00'),(2,'Wednesday','07:00:00','23:00:00'),(3,'Friday','07:00:00','22:00:00'),(3,'Monday','07:00:00','22:00:00'),(3,'Saturday','10:00:00','20:00:00'),(3,'Sunday','10:00:00','20:00:00'),(3,'Thursday','07:00:00','22:00:00'),(3,'Tuesday','07:00:00','22:00:00'),(3,'Wednesday','07:00:00','22:00:00'),(4,'Friday','07:00:00','22:00:00'),(4,'Monday','07:00:00','22:00:00'),(4,'Saturday','08:00:00','18:00:00'),(4,'Sunday','08:00:00','18:00:00'),(4,'Thursday','07:00:00','22:00:00'),(4,'Tuesday','07:00:00','22:00:00'),(4,'Wednesday','07:00:00','22:00:00'),(5,'Friday','07:00:00','22:00:00'),(5,'Monday','07:00:00','22:00:00'),(5,'Saturday','08:00:00','18:00:00'),(5,'Sunday','08:00:00','18:00:00'),(5,'Thursday','07:00:00','22:00:00'),(5,'Tuesday','07:00:00','22:00:00'),(5,'Wednesday','07:00:00','22:00:00'),(6,'Friday','07:00:00','22:00:00'),(6,'Monday','07:00:00','22:00:00'),(6,'Saturday','08:00:00','18:00:00'),(6,'Sunday','08:00:00','18:00:00'),(6,'Thursday','07:00:00','22:00:00'),(6,'Tuesday','07:00:00','22:00:00'),(6,'Wednesday','07:00:00','22:00:00'),(7,'Friday','08:30:00','16:30:00'),(7,'Monday','08:30:00','17:00:00'),(7,'Saturday','08:30:00','16:30:00'),(7,'Sunday','08:30:00','16:30:00'),(7,'Thursday','08:30:00','17:00:00'),(7,'Tuesday','08:30:00','17:00:00'),(7,'Wednesday','08:30:00','17:00:00'),(8,'Friday','07:00:00','22:00:00'),(8,'Monday','07:00:00','22:00:00'),(8,'Saturday','08:00:00','18:00:00'),(8,'Sunday','08:00:00','18:00:00'),(8,'Thursday','07:00:00','22:00:00'),(8,'Tuesday','07:00:00','22:00:00'),(8,'Wednesday','07:00:00','22:00:00'),(9,'Friday','08:00:00','17:00:00'),(9,'Monday','08:00:00','17:00:00'),(9,'Saturday','08:00:00','17:00:00'),(9,'Sunday','08:00:00','17:00:00'),(9,'Thursday','08:00:00','17:00:00'),(9,'Tuesday','08:00:00','17:00:00'),(9,'Wednesday','08:00:00','17:00:00'),(10,'Friday','07:00:00','22:00:00'),(10,'Monday','07:00:00','22:00:00'),(10,'Saturday','08:00:00','18:00:00'),(10,'Sunday','08:00:00','18:00:00'),(10,'Thursday','07:00:00','22:00:00'),(10,'Tuesday','07:00:00','22:00:00'),(10,'Wednesday','07:00:00','22:00:00');
-/*!40000 ALTER TABLE `building_hours` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `reviews` VALUES (1,1,1,NULL,'Convenient location with many tables.','2026-09-20 09:30:00',1),
+(2,2,2,NULL,'Very quiet and good for reading.','2026-09-20 10:30:00',1),
+(3,3,3,NULL,'Good for group work but can get loud.','2026-09-21 11:30:00',1),
+(4,4,4,NULL,'Useful study area between classes.','2026-09-21 12:30:00',1),
+(5,5,5,NULL,'Great room for project meetings.','2026-09-22 13:30:00',1),
+(6,6,6,NULL,'Comfortable lounge with natural light.','2026-09-22 14:30:00',1),
+(7,7,7,NULL,'Usually quiet and not too crowded.','2026-09-23 10:00:00',1),
+(8,8,8,NULL,'Helpful for residents who need a nearby room.','2026-09-23 15:30:00',1),
+(9,9,9,NULL,'Good computers and plenty of desk space.','2026-09-24 11:00:00',1),
+(10,10,10,NULL,'Bright room with a calm atmosphere.','2026-09-24 16:30:00',1);
 
---
--- Dumping data for table `buildings`
---
+INSERT INTO `rewards` VALUES (1,'Amazon Gift Card','Digital gift card for Amazon purchases.',500,25,1),
+(2,'Target Gift Card','Gift card for Target purchases.',500,25,1),
+(3,'Starbucks Gift Card','Gift card for Starbucks beverages.',300,40,1),
+(4,'Safeway Gift Card','Gift card for groceries at Safeway.',750,20,1),
+(5,'Chipotle Gift Card','Gift card for a Chipotle meal.',400,30,1),
+(6,'In-N-Out Gift Card','Gift card for an In-N-Out meal.',400,30,1),
+(7,'Barnes and Noble Gift Card','Gift card for books and school supplies.',600,20,1),
+(8,'DoorDash Gift Card','Gift card for food delivery.',800,15,1),
+(9,'Jamba Gift Card','Gift card for a smoothie or snack.',300,35,1),
+(10,'Safeway Coffee Gift Card','Gift card for coffee and refreshments.',250,40,1);
 
-LOCK TABLES `buildings` WRITE;
-/*!40000 ALTER TABLE `buildings` DISABLE KEYS */;
-INSERT INTO `buildings` VALUES (1,'KING','Dr. Martin Luther King, Jr. Library'),(2,'SU','Student Union'),(3,'DC','Dining Commons'),(4,'ENG','Engineering Building'),(5,'BBC','Boccardo Business Complex'),(6,'SCI','Science Building'),(7,'HB','Health Building'),(8,'SPXC','Spartan Complex Central'),(9,'SSC','Student Services Center'),(10,'CC','Computer Center');
-/*!40000 ALTER TABLE `buildings` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `students` VALUES (1,'100001',1,245,92),
+(2,'100002',1,180,88),
+(3,'100003',1,320,95),
+(4,'100004',0,75,80),
+(5,'100005',1,410,97),
+(6,'100006',1,125,84),
+(7,'100007',0,90,82),
+(8,'100008',1,275,91),
+(9,'100009',1,150,86),
+(10,'100010',1,360,94),
+(21,'21',0,0,0),
+(22,'22',0,0,0),
+(23,'23',0,0,0),
+(28,'28',0,0,0);
 
---
--- Dumping data for table `moderates`
---
+INSERT INTO `study_spots` VALUES (1,1,'King Library Quiet Study','Seventh floor','Student access',120,'Quiet individual study tables near the library entrance.',1,'2026-08-25 08:00:00',37.335300,-121.881000,'mlk.jpg'),
+(2,2,'Student Union Study Lounge','Second floor lounge','Public access',60,'Open study lounge with tables and charging outlets.',1,'2026-08-25 08:10:00',37.335500,-121.881500,'su.jpeg'),
+(3,3,'Dining Commons Study Area','Upper dining area','Student access',80,'Study tables located away from the main dining area.',1,'2026-08-25 08:20:00',37.335800,-121.880500,'dining_commons.jpg'),
+(4,4,'Engineering Building Study Area','First floor collaborative area','Student access',75,'Collaborative study area for engineering students.',1,'2026-08-25 08:30:00',37.336200,-121.881800,'engineering.jpg'),
+(5,5,'BBC Study Room','Second floor study room','Student access',40,'Business study room with tables and electrical outlets.',1,'2026-08-25 08:40:00',37.336500,-121.882500,'bbc.jpg'),
+(6,6,'Science Building Commons','Main lobby commons','Student access',50,'Open seating area near the Science Building lobby.',1,'2026-08-25 08:50:00',37.336800,-121.883000,'science.jpg'),
+(7,7,'Student Wellness Center Lounge','First floor lounge','Student access',30,'Small lounge area with seating and tables.',1,'2026-08-25 09:00:00',37.337000,-121.882000,'swh.jpg'),
+(8,8,'Spartan Complex Central Study Area','Central commons area','Student access',65,'Study tables near the Spartan Complex Central entrance.',1,'2026-08-25 09:10:00',37.334800,-121.879800,'spartan_complex.jpg'),
+(9,9,'Student Services Center Study Area','Main lobby seating area','Public access',25,'Public seating and short-term study tables.',1,'2026-08-25 09:20:00',37.335900,-121.879200,'student_services.jpg'),
+(10,10,'Computer Center Study Area','Computer lab entrance area','Student access',45,'Study tables near computer facilities.',1,'2026-08-25 09:30:00',37.336700,-121.880200,'computer_center.jpg');
 
-LOCK TABLES `moderates` WRITE;
-/*!40000 ALTER TABLE `moderates` DISABLE KEYS */;
-INSERT INTO `moderates` VALUES (1,11,1,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),(2,11,2,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32'),(3,11,3,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),(4,11,4,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32'),(5,11,5,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),(6,11,6,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32'),(7,11,7,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),(8,11,8,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32'),(9,11,9,'flagged','Report requires additional review because the information may be inaccurate.','2026-10-09 17:24:32'),(10,11,10,'approved','Report reviewed and appears reasonable.','2026-10-09 17:24:32');
-/*!40000 ALTER TABLE `moderates` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `users` VALUES (1,'Charlie Li','charlie.li@sjsu.edu',1,'hash_student_001','active','2026-09-01 16:00:00'),
+(2,'Daniel Kim','daniel.kim@sjsu.edu',1,'hash_student_002','active','2026-09-01 16:10:00'),
+(3,'Maya Patel','maya.patel@sjsu.edu',1,'hash_student_003','active','2026-09-02 17:00:00'),
+(4,'Carlos Ramirez','carlos.ramirez@sjsu.edu',1,'hash_student_004','active','2026-09-02 17:15:00'),
+(5,'Sophia Nguyen','sophia.nguyen@sjsu.edu',1,'hash_student_005','active','2026-09-03 18:00:00'),
+(6,'Ethan Chen','ethan.chen@sjsu.edu',1,'hash_student_006','active','2026-09-03 18:20:00'),
+(7,'Ava Williams','ava.williams@sjsu.edu',1,'hash_student_007','active','2026-09-04 19:00:00'),
+(8,'Noah Garcia','noah.garcia@sjsu.edu',1,'hash_student_008','active','2026-09-04 19:30:00'),
+(9,'Grace Park','grace.park@sjsu.edu',1,'hash_student_009','active','2026-09-05 20:00:00'),
+(10,'Liam Johnson','liam.johnson@sjsu.edu',1,'hash_student_010','active','2026-09-05 20:30:00'),
+(11,'SJSU Administrator 1','admin1@sjsu.edu',1,'hash_admin_001','active','2026-08-20 15:00:00'),
+(12,'SJSU Administrator 2','admin2@sjsu.edu',1,'hash_admin_002','active','2026-08-20 15:10:00'),
+(13,'SJSU Administrator 3','admin3@sjsu.edu',1,'hash_admin_003','active','2026-08-20 15:20:00'),
+(14,'SJSU Administrator 4','admin4@sjsu.edu',1,'hash_admin_004','active','2026-08-20 15:30:00'),
+(15,'SJSU Administrator 5','admin5@sjsu.edu',1,'hash_admin_005','active','2026-08-20 15:40:00'),
+(16,'SJSU Administrator 6','admin6@sjsu.edu',1,'hash_admin_006','active','2026-08-20 15:50:00'),
+(17,'SJSU Administrator 7','admin7@sjsu.edu',1,'hash_admin_007','active','2026-08-20 16:00:00'),
+(18,'SJSU Administrator 8','admin8@sjsu.edu',1,'hash_admin_008','active','2026-08-20 16:10:00'),
+(19,'SJSU Administrator 9','admin9@sjsu.edu',1,'hash_admin_009','active','2026-08-20 16:20:00'),
+(20,'SJSU Administrator 10','admin10@sjsu.edu',1,'hash_admin_010','active','2026-08-20 16:30:00'),
+(21,'jandlf','adfls@sjsu.edu',NULL,'pbkdf2_sha256$600000$SELRaSOn6wjenY+G1s8jHg==$nrdd5zBWEDmpCEplwtDPjLzTHcHreGLW9E/tUX42T7k=','active','2026-10-03 19:06:13'),
+(22,'izzie','jldfnls@sjsu.edu',NULL,'pbkdf2_sha256$600000$Mk2VeY1InLN07ODEKXw6Ug==$xGTMczp56CQ8qQAwa9UmsYfe2Z7so4QhV6Tv28nrmL4=','active','2026-10-03 19:06:13'),
+(23,'iggie','iggiesports@sjsu.edu',NULL,'pbkdf2_sha256$600000$bGgKKC61fI2xL7ge9+d7cg==$1td/IOIyN8JnyCgh1jB2HipP/vGTaLtfnFFSUXV2FwA=','active','2026-10-03 19:06:13'),
+(28,'Isabelle Li','isabelle.li@sjsu.edu',1,'pbkdf2_sha256$600000$sb7Tq5WsenOQ61Xvn/tS2A==$7vHGabAcEPsWvqnfBICcs6aIQ/VhdhQ4hdhsFCFe1/s=','active','2026-10-03 19:07:11');
 
---
--- Dumping data for table `provides`
---
+INSERT INTO `verifies` VALUES (1,2,'confirmed','2026-09-20 10:00:00'),
+(2,3,'confirmed','2026-09-20 11:00:00'),
+(3,4,'confirmed','2026-09-21 12:00:00'),
+(4,5,'confirmed','2026-09-21 13:00:00'),
+(5,6,'confirmed','2026-09-22 14:00:00'),
+(6,7,'disputed','2026-09-22 15:00:00'),
+(7,8,'confirmed','2026-09-23 10:30:00'),
+(8,9,'confirmed','2026-09-23 16:30:00'),
+(9,10,'confirmed','2026-09-24 11:30:00'),
+(10,1,'confirmed','2026-09-24 17:00:00');
 
-LOCK TABLES `provides` WRITE;
-/*!40000 ALTER TABLE `provides` DISABLE KEYS */;
-INSERT INTO `provides` VALUES (1,1,'Outlets beside most tables.'),(2,8,'Quiet zone with individual desks.'),(3,9,'Large tables available for groups.'),(4,3,'Whiteboards near the lobby.'),(5,1,'Outlets along the walls.'),(6,7,'Large windows provide natural lighting.'),(7,2,'Strong Wi-Fi signal reported by students.'),(8,9,'Group table in the center of the room.'),(9,4,'Computers available for student use.'),(10,10,'Food and drinks are available nearby.');
-/*!40000 ALTER TABLE `provides` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `violations` VALUES (1,1,1,11,'abusive_report','The report contained inappropriate or abusive content.','low'),
+(2,2,2,11,'false_report','The submitted study-spot information was determined to be inaccurate.','medium'),
+(3,3,3,11,'abusive_report','The report contained inappropriate or abusive content.','high'),
+(4,4,4,11,'false_report','The submitted study-spot information was determined to be inaccurate.','medium'),
+(5,5,5,11,'abusive_report','The report contained inappropriate or abusive content.','low'),
+(6,6,6,11,'false_report','The submitted study-spot information was determined to be inaccurate.','high'),
+(7,7,7,11,'abusive_report','The report contained inappropriate or abusive content.','low'),
+(8,8,8,11,'false_report','The submitted study-spot information was determined to be inaccurate.','medium'),
+(9,9,9,11,'abusive_report','The report contained inappropriate or abusive content.','high'),
+(10,10,10,11,'false_report','The submitted study-spot information was determined to be inaccurate.','medium');
 
---
--- Dumping data for table `redeems`
---
-
-LOCK TABLES `redeems` WRITE;
-/*!40000 ALTER TABLE `redeems` DISABLE KEYS */;
-INSERT INTO `redeems` VALUES (1,1,1,50,'completed','2026-09-20 10:00:00'),(2,2,4,100,'completed','2026-09-20 11:00:00'),(3,3,3,150,'completed','2026-09-21 12:00:00'),(4,4,8,75,'completed','2026-09-21 13:00:00'),(5,5,2,250,'completed','2026-09-22 14:00:00'),(6,6,1,50,'completed','2026-09-22 15:00:00'),(7,7,5,125,'pending','2026-09-23 10:30:00'),(8,8,7,175,'completed','2026-09-23 16:00:00'),(9,9,9,300,'completed','2026-09-24 11:30:00'),(10,10,10,350,'pending','2026-09-24 17:00:00');
-/*!40000 ALTER TABLE `redeems` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `reports`
---
-
-LOCK TABLES `reports` WRITE;
-/*!40000 ALTER TABLE `reports` DISABLE KEYS */;
-INSERT INTO `reports` VALUES (1,1,1,'Moderate','Crowded',1,'None','Many students were studying near the entrance.','2026-09-20 09:00:00',3.20),(2,2,2,'Quiet','Available',1,'None','Good location for individual studying.','2026-09-20 10:00:00',8.50),(3,3,3,'Loud','Crowded',1,'Low','Conversation was noticeable near the lounge.','2026-09-21 11:00:00',12.75),(4,4,4,'Moderate','Available',1,'None','Several open tables were available.','2026-09-21 12:00:00',5.40),(5,5,5,'Quiet','Available',1,'None','Good room for group project meetings.','2026-09-22 13:00:00',18.00),(6,6,6,'Moderate','Available',0,'None','Comfortable seating but no nearby outlets.','2026-09-22 14:00:00',2.10),(7,7,7,'Quiet','Available',1,'None','Very quiet and lightly occupied.','2026-09-23 09:30:00',25.50),(8,8,8,'Moderate','Crowded',1,'None','Room was mostly occupied in the afternoon.','2026-09-23 15:00:00',7.80),(9,9,9,'Moderate','Available',1,'None','Computers and tables were available.','2026-09-24 10:30:00',15.25),(10,10,10,'Quiet','Available',1,'None','Bright and comfortable study area.','2026-09-24 16:00:00',10.00);
-/*!40000 ALTER TABLE `reports` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `reviews`
---
-
-LOCK TABLES `reviews` WRITE;
-/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
-INSERT INTO `reviews` VALUES (1,1,1,NULL,'Convenient location with many tables.','2026-09-20 09:30:00',1),(2,2,2,NULL,'Very quiet and good for reading.','2026-09-20 10:30:00',1),(3,3,3,NULL,'Good for group work but can get loud.','2026-09-21 11:30:00',1),(4,4,4,NULL,'Useful study area between classes.','2026-09-21 12:30:00',1),(5,5,5,NULL,'Great room for project meetings.','2026-09-22 13:30:00',1),(6,6,6,NULL,'Comfortable lounge with natural light.','2026-09-22 14:30:00',1),(7,7,7,NULL,'Usually quiet and not too crowded.','2026-09-23 10:00:00',1),(8,8,8,NULL,'Helpful for residents who need a nearby room.','2026-09-23 15:30:00',1),(9,9,9,NULL,'Good computers and plenty of desk space.','2026-09-24 11:00:00',1),(10,10,10,NULL,'Bright room with a calm atmosphere.','2026-09-24 16:30:00',1);
-/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `rewards`
---
-
-LOCK TABLES `rewards` WRITE;
-/*!40000 ALTER TABLE `rewards` DISABLE KEYS */;
-INSERT INTO `rewards` VALUES (1,'Amazon Gift Card','Digital gift card for Amazon purchases.',500,25,1),(2,'Target Gift Card','Gift card for Target purchases.',500,25,1),(3,'Starbucks Gift Card','Gift card for Starbucks beverages.',300,40,1),(4,'Safeway Gift Card','Gift card for groceries at Safeway.',750,20,1),(5,'Chipotle Gift Card','Gift card for a Chipotle meal.',400,30,1),(6,'In-N-Out Gift Card','Gift card for an In-N-Out meal.',400,30,1),(7,'Barnes and Noble Gift Card','Gift card for books and school supplies.',600,20,1),(8,'DoorDash Gift Card','Gift card for food delivery.',800,15,1),(9,'Jamba Gift Card','Gift card for a smoothie or snack.',300,35,1),(10,'Safeway Coffee Gift Card','Gift card for coffee and refreshments.',250,40,1);
-/*!40000 ALTER TABLE `rewards` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `students`
---
-
-LOCK TABLES `students` WRITE;
-/*!40000 ALTER TABLE `students` DISABLE KEYS */;
-INSERT INTO `students` VALUES (1,'100001',1,245,92),(2,'100002',1,180,88),(3,'100003',1,320,95),(4,'100004',0,75,80),(5,'100005',1,410,97),(6,'100006',1,125,84),(7,'100007',0,90,82),(8,'100008',1,275,91),(9,'100009',1,150,86),(10,'100010',1,360,94),(21,'21',0,0,0),(22,'22',0,0,0),(23,'23',0,0,0),(28,'28',0,0,0);
-/*!40000 ALTER TABLE `students` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `study_spots`
---
-
-LOCK TABLES `study_spots` WRITE;
-/*!40000 ALTER TABLE `study_spots` DISABLE KEYS */;
-INSERT INTO `study_spots` VALUES (1,1,'King Library Quiet Study','Seventh floor','Student access',120,'Quiet individual study tables near the library entrance.',1,'2026-08-25 08:00:00',37.335300,-121.881000,'king_library.jpg'),(2,2,'Student Union Study Lounge','Second floor lounge','Public access',60,'Open study lounge with tables and charging outlets.',1,'2026-08-25 08:10:00',37.335500,-121.881500,'student_union.jpg'),(3,3,'Dining Commons Study Area','Upper dining area','Student access',80,'Study tables located away from the main dining area.',1,'2026-08-25 08:20:00',37.335800,-121.880500,'dining_commons.jpg'),(4,4,'Engineering Building Study Area','First floor collaborative area','Student access',75,'Collaborative study area for engineering students.',1,'2026-08-25 08:30:00',37.336200,-121.881800,'engineering.jpg'),(5,5,'BBC Study Room','Second floor study room','Student access',40,'Business study room with tables and electrical outlets.',1,'2026-08-25 08:40:00',37.336500,-121.882500,'bbc.jpg'),(6,6,'Science Building Commons','Main lobby commons','Student access',50,'Open seating area near the Science Building lobby.',1,'2026-08-25 08:50:00',37.336800,-121.883000,'science.jpg'),(7,7,'Health Building Lounge','First floor lounge','Student access',30,'Small lounge area with seating and tables.',1,'2026-08-25 09:00:00',37.337000,-121.882000,'health_building.jpg'),(8,8,'Spartan Complex Central Study Area','Central commons area','Student access',65,'Study tables near the Spartan Complex Central entrance.',1,'2026-08-25 09:10:00',37.334800,-121.879800,'spartan_complex.jpg'),(9,9,'Student Services Center Study Area','Main lobby seating area','Public access',25,'Public seating and short-term study tables.',1,'2026-08-25 09:20:00',37.335900,-121.879200,'student_services.jpg'),(10,10,'Computer Center Study Area','Computer lab entrance area','Student access',45,'Study tables near computer facilities.',1,'2026-08-25 09:30:00',37.336700,-121.880200,'computer_center.jpg');
-/*!40000 ALTER TABLE `study_spots` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Charlie Li','charlie.li@sjsu.edu',1,'hash_student_001','active','2026-09-01 16:00:00'),(2,'Daniel Kim','daniel.kim@sjsu.edu',1,'hash_student_002','active','2026-09-01 16:10:00'),(3,'Maya Patel','maya.patel@sjsu.edu',1,'hash_student_003','active','2026-09-02 17:00:00'),(4,'Carlos Ramirez','carlos.ramirez@sjsu.edu',1,'hash_student_004','active','2026-09-02 17:15:00'),(5,'Sophia Nguyen','sophia.nguyen@sjsu.edu',1,'hash_student_005','active','2026-09-03 18:00:00'),(6,'Ethan Chen','ethan.chen@sjsu.edu',1,'hash_student_006','active','2026-09-03 18:20:00'),(7,'Ava Williams','ava.williams@sjsu.edu',1,'hash_student_007','active','2026-09-04 19:00:00'),(8,'Noah Garcia','noah.garcia@sjsu.edu',1,'hash_student_008','active','2026-09-04 19:30:00'),(9,'Grace Park','grace.park@sjsu.edu',1,'hash_student_009','active','2026-09-05 20:00:00'),(10,'Liam Johnson','liam.johnson@sjsu.edu',1,'hash_student_010','active','2026-09-05 20:30:00'),(11,'SJSU Administrator 1','admin1@sjsu.edu',1,'hash_admin_001','active','2026-08-20 15:00:00'),(12,'SJSU Administrator 2','admin2@sjsu.edu',1,'hash_admin_002','active','2026-08-20 15:10:00'),(13,'SJSU Administrator 3','admin3@sjsu.edu',1,'hash_admin_003','active','2026-08-20 15:20:00'),(14,'SJSU Administrator 4','admin4@sjsu.edu',1,'hash_admin_004','active','2026-08-20 15:30:00'),(15,'SJSU Administrator 5','admin5@sjsu.edu',1,'hash_admin_005','active','2026-08-20 15:40:00'),(16,'SJSU Administrator 6','admin6@sjsu.edu',1,'hash_admin_006','active','2026-08-20 15:50:00'),(17,'SJSU Administrator 7','admin7@sjsu.edu',1,'hash_admin_007','active','2026-08-20 16:00:00'),(18,'SJSU Administrator 8','admin8@sjsu.edu',1,'hash_admin_008','active','2026-08-20 16:10:00'),(19,'SJSU Administrator 9','admin9@sjsu.edu',1,'hash_admin_009','active','2026-08-20 16:20:00'),(20,'SJSU Administrator 10','admin10@sjsu.edu',1,'hash_admin_010','active','2026-08-20 16:30:00'),(21,'jandlf','adfls@sjsu.edu',NULL,'pbkdf2_sha256$600000$SELRaSOn6wjenY+G1s8jHg==$nrdd5zBWEDmpCEplwtDPjLzTHcHreGLW9E/tUX42T7k=','active','2026-10-03 19:06:13'),(22,'izzie','jldfnls@sjsu.edu',NULL,'pbkdf2_sha256$600000$Mk2VeY1InLN07ODEKXw6Ug==$xGTMczp56CQ8qQAwa9UmsYfe2Z7so4QhV6Tv28nrmL4=','active','2026-10-03 19:06:13'),(23,'iggie','iggiesports@sjsu.edu',NULL,'pbkdf2_sha256$600000$bGgKKC61fI2xL7ge9+d7cg==$1td/IOIyN8JnyCgh1jB2HipP/vGTaLtfnFFSUXV2FwA=','active','2026-10-03 19:06:13'),(28,'Isabelle Li','isabelle.li@sjsu.edu',1,'pbkdf2_sha256$600000$sb7Tq5WsenOQ61Xvn/tS2A==$7vHGabAcEPsWvqnfBICcs6aIQ/VhdhQ4hdhsFCFe1/s=','active','2026-10-03 19:07:11');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `verifies`
---
-
-LOCK TABLES `verifies` WRITE;
-/*!40000 ALTER TABLE `verifies` DISABLE KEYS */;
-INSERT INTO `verifies` VALUES (1,2,'confirmed','2026-09-20 10:00:00'),(2,3,'confirmed','2026-09-20 11:00:00'),(3,4,'confirmed','2026-09-21 12:00:00'),(4,5,'confirmed','2026-09-21 13:00:00'),(5,6,'confirmed','2026-09-22 14:00:00'),(6,7,'disputed','2026-09-22 15:00:00'),(7,8,'confirmed','2026-09-23 10:30:00'),(8,9,'confirmed','2026-09-23 16:30:00'),(9,10,'confirmed','2026-09-24 11:30:00'),(10,1,'confirmed','2026-09-24 17:00:00');
-/*!40000 ALTER TABLE `verifies` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `violations`
---
-
-LOCK TABLES `violations` WRITE;
-/*!40000 ALTER TABLE `violations` DISABLE KEYS */;
-INSERT INTO `violations` VALUES (1,1,1,11,'abusive_report','The report contained inappropriate or abusive content.','low'),(2,2,2,11,'false_report','The submitted study-spot information was determined to be inaccurate.','medium'),(3,3,3,11,'abusive_report','The report contained inappropriate or abusive content.','high'),(4,4,4,11,'false_report','The submitted study-spot information was determined to be inaccurate.','medium'),(5,5,5,11,'abusive_report','The report contained inappropriate or abusive content.','low'),(6,6,6,11,'false_report','The submitted study-spot information was determined to be inaccurate.','high'),(7,7,7,11,'abusive_report','The report contained inappropriate or abusive content.','low'),(8,8,8,11,'false_report','The submitted study-spot information was determined to be inaccurate.','medium'),(9,9,9,11,'abusive_report','The report contained inappropriate or abusive content.','high'),(10,10,10,11,'false_report','The submitted study-spot information was determined to be inaccurate.','medium');
-/*!40000 ALTER TABLE `violations` ENABLE KEYS */;
-UNLOCK TABLES;
-SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2026-10-14  9:18:36
+SET FOREIGN_KEY_CHECKS = 1;
