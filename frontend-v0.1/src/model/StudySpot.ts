@@ -5,6 +5,9 @@ export interface StudySpot {
   id: number
   name: string
   location: string
+  latitude: number
+  longitude: number
+  accessType: string
   noise: string
   noiseLevel: NoiseLevel
   crowded: string

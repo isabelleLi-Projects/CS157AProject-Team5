@@ -10,6 +10,7 @@ import QuickActions from './components/QuickActions'
 import RewardsPreview from './components/RewardsPreview'
 import SpotFilters from './components/SpotFilters'
 import SpotSection from './components/SpotSection'
+import MapView from './components/MapView'
 
 export default function MainLayout() {
   const [isLoggedIn, setIsLoggedIn] = useState(true)
@@ -160,6 +161,10 @@ export default function MainLayout() {
 
             <div className="mt-5">
             <SpotFilters filters={FILTERS} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+            </div>
+
+            <div className='mt-6'>
+              <MapView spots={filteredSpots} />
             </div>
 
             <div className="mt-6 mb-3 flex items-center justify-between">

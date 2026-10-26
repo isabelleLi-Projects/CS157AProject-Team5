@@ -1,8 +1,31 @@
+import { useEffect, useState } from 'react'
+
 type LocationBannerProps = {
   onDismiss: () => void
 }
 
+
 export default function LocationBanner({ onDismiss }: LocationBannerProps) {
+  // permission states
+  const [showBanner, setShowBanner] = useState(true)
+  type LocationBannerProps = {
+    onDismiss: () => void
+  }
+  useEffect(() => {
+    if (!navigator.permissions) return
+
+    navigator.permissions
+      .query({ name: 'geolocation' })
+      .then((permission) => {
+        if (permission.state === 'granted') {
+          setShowBanner(false)
+        }
+        permission.onchange = () => {
+          setShowBanner(permission.state !== 'granted')
+        }
+      })
+  }, [])
+
   const enableLocation = () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser.')
@@ -16,6 +39,11 @@ export default function LocationBanner({ onDismiss }: LocationBannerProps) {
 
         alert('Location access enabled!')
         onDismiss()
+        console.log('Latitude:', position.coords.latitude)
+        console.log('Longitude:', position.coords.longitude)
+
+        setShowBanner(false)
+        onDismiss()
       },
       (error) => {
         console.error('Location error:', error)
@@ -27,6 +55,9 @@ export default function LocationBanner({ onDismiss }: LocationBannerProps) {
         }
       }
     )
+  }
+  if (!showBanner) {
+    return null
   }
 
   return (

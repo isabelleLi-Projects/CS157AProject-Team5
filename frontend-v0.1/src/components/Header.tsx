@@ -23,7 +23,7 @@ export default function Header({
     form.submit()
   }
   return (
-    <nav className="surface-background standard-border sticky top-0 z-50 border-x-0 border-t-0">
+    <nav className="surface-background standard-border sticky top-0 border-x-0 border-t-0" style={{zIndex: 1000,}}>
       <div className="px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <img src={spartan} alt="Spartan logo" className="logo-image" />
