@@ -23,6 +23,11 @@ export interface StudySpot {
   photoPath?: string
 }
 
+export interface UserLocation {
+  lat: number;
+  lng: number;
+}
+
 export interface Reward {
   id?: number
   icon: string

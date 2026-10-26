@@ -1,6 +1,5 @@
-import { useMemo, useState } from 'react'
+import {useEffect, useMemo, useState } from 'react'
 import { FILTERS, RECENT_SPOTS, REWARDS, STUDY_SPOTS } from './data/studySpots'
-
 import SpotCard from './components/SpotCard'
 import Header from './components/Header'
 import HeroSection from './components/HeroSection'
@@ -12,22 +11,90 @@ import SpotFilters from './components/SpotFilters'
 import SpotSection from './components/SpotSection'
 import MapView from './components/MapView'
 
+type UserLocation = {
+  lat: number
+  lng: number
+}
+function distanceInMiles(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+) {
+  const earthRadiusMiles = 3958.8
+  const toRadians = (degrees: number) => degrees * (Math.PI / 180)
+  const dLat = toRadians(lat2 - lat1)
+  const dLng = toRadians(lng2 - lng1)
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRadians(lat1)) *
+      Math.cos(toRadians(lat2)) *
+      Math.sin(dLng / 2) ** 2
+
+  return earthRadiusMiles * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
 export default function MainLayout() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true)
-  const [locationDismissed, setLocationDismissed] = useState(false)
+  const currentUser = window.currentUser
+  const isGuest = currentUser?.role?.toLowerCase() == 'guest'
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(currentUser && !isGuest))
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [showLocationBanner, setShowLocationBanner] = useState(true)
+  const [locationError, setLocationError] = useState('')
+  // const [locationDismissed, setLocationDismissed] = useState(false)
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
   const [activeNav, setActiveNav] = useState('Home')
-
+  const requestUserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Location is not supported by your browser.')
+      return
+    }
+  
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        })
+  
+        setLocationError('')
+      },
+      () => {
+        setLocationError(
+          'Please allow location access to use Near Me.'
+        )
+      }
+    )
+  }
+  
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter)
+  
+    if (filter === 'Near Me' && !userLocation) {
+      requestUserLocation()
+    }
+  }
   const filteredSpots = useMemo(() => {
     const query = search.toLowerCase().trim()
 
     return STUDY_SPOTS.filter((spot) => {
+      const accessType = spot.accessType.toLowerCase().replace(/[\s-]+/g, '_')
+
+    const canAccess = !isGuest || accessType === 'public_access'
       const matchesSearch = !query || [spot.name, spot.location, ...spot.tags].some((value) => value.toLowerCase().includes(query))
-      const matchesFilter = activeFilter === 'All' || (activeFilter === 'Quiet' && spot.noiseLevel === 'low') || (activeFilter === 'Open Now' && spot.open) || (activeFilter === 'Outlets' && spot.outlets === 'Available') || activeFilter === 'Near Me'
-      return matchesSearch && matchesFilter
+      const matchesFilter = 
+      activeFilter === 'All' 
+      || (activeFilter === 'Quiet' && spot.noiseLevel === 'low') 
+      || (activeFilter === 'Open Now' && spot.open) 
+      || (activeFilter === 'Outlets' && spot.outlets === 'Available') 
+      || activeFilter === 'Near Me' &&
+      userLocation !== null &&
+      // user is within a 0.5 mile radius of the study spot
+      distanceInMiles(userLocation.lat, userLocation.lng, spot.latitude, spot.longitude) <= 0.5
+      return canAccess && matchesSearch && matchesFilter
     })
-  }, [search, activeFilter])
+  }, [search, activeFilter, isGuest])
 
   const navigateTo = (nav: string) => {
     setActiveNav(nav)
@@ -45,7 +112,9 @@ export default function MainLayout() {
         isLoggedIn={isLoggedIn}
         activeNav={activeNav}
         onNavChange={navigateTo}
-        onLoginToggle={() => setIsLoggedIn((value) => !value)}
+        onLoginToggle={() => {
+          window.location.href =`${window.studyFinderContext ?? ''}/login.jsp`
+        }}
       />
 
       <main className="px-6 pb-16">
@@ -57,9 +126,10 @@ export default function MainLayout() {
           <>
             <HeroSection isLoggedIn={isLoggedIn} />
 
-            {!locationDismissed && (
+            {showLocationBanner && (
               <LocationBanner
-                onDismiss={() => setLocationDismissed(true)}
+                onDismiss={() => setShowLocationBanner(false)}
+                onLocationChange={setUserLocation}
               />
             )}
 
@@ -104,7 +174,7 @@ export default function MainLayout() {
                 </button>
               </div>
 
-              <SpotFilters filters={FILTERS} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+              <SpotFilters filters={FILTERS} activeFilter={activeFilter} onFilterChange={handleFilterChange} />
 
               <div className="grid grid-cols-1 gap-4">
                 {filteredSpots.map((spot) => (
@@ -147,11 +217,11 @@ export default function MainLayout() {
               </p>
             </div>
 
-            {!locationDismissed && (
+            {/* {!locationDismissed && (
               <LocationBanner
                 onDismiss={() => setLocationDismissed(true)}
               />
-            )}
+            )} */}
 
             <SearchBar
               search={search}
@@ -160,11 +230,11 @@ export default function MainLayout() {
             />
 
             <div className="mt-5">
-            <SpotFilters filters={FILTERS} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+            <SpotFilters filters={FILTERS} activeFilter={activeFilter} onFilterChange={handleFilterChange} />
             </div>
 
             <div className='mt-6'>
-              <MapView spots={filteredSpots} />
+              <MapView spots={filteredSpots} userLocation={userLocation ?? undefined} activeFilter={activeFilter}/>
             </div>
 
             <div className="mt-6 mb-3 flex items-center justify-between">

@@ -26,6 +26,7 @@ declare global {
     rewards?: Array<{ id: number; label: string; description?: string; pts: number; stock: number }>
     studentPoints?: number
     studyFinderContext?: string
+    currentUser?: {id: number | null; name: string; email:string; role: string}
   }
 }
 
