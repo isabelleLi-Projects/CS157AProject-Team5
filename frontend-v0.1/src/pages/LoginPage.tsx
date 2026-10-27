@@ -146,7 +146,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="app-background min-h-screen md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+    <div className="app-background min-h-screen md:h-screen md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
       {/* Brand panel, shown from tablet width up */}
       <aside className="primary-background hidden md:flex flex-col justify-between p-10 lg:p-14">
         <Brand light />
@@ -162,22 +162,22 @@ export default function LoginPage() {
         </div>
       </aside>
 
-      <main className="flex items-start md:items-center justify-center px-6 py-10 md:py-16">
-        <div className="w-full max-w-sm">
-          <div className="md:hidden mb-10">
+      <main className={`flex items-start justify-center px-6 md:overflow-y-auto ${isSignup ? 'py-6 md:py-6' : 'py-10 md:py-16'}`}>
+        <div className="w-full max-w-sm md:my-auto">
+          <div className={`md:hidden ${isSignup ? 'mb-6' : 'mb-10'}`}>
             <Brand />
           </div>
 
           <h1 className="font-display text-3xl text-main leading-tight">
             {isSignup ? 'Create your account' : 'Log in'}
           </h1>
-          <p className="text-sm text-muted mt-2 mb-7">
+          <p className={`text-sm text-muted ${isSignup ? 'mt-1 mb-4' : 'mt-2 mb-7'}`}>
             {isSignup
               ? "Only @sjsu.edu emails can sign up. Verify your email before your account is created."
               : 'Use your SJSU email to see every study spot and add reports.'}
           </p>
 
-          <form method="post" action={`${window.studyFinderContext ?? ''}/login.jsp`} onSubmit={handleSubmit} noValidate className="space-y-4">
+          <form method="post" action={`${window.studyFinderContext ?? ''}/login.jsp`} onSubmit={handleSubmit} noValidate className={isSignup ? 'space-y-3' : 'space-y-4'}>
             <input type="hidden" name="mode" value={isSignup ? 'signup' : 'login'} />
             {isSignup && (
               <TextField
@@ -218,6 +218,7 @@ export default function LoginPage() {
               }}
               autoComplete={isSignup ? 'new-password' : 'current-password'}
               hint={isSignup ? `At least ${MIN_PASSWORD_LENGTH} characters.` : undefined}
+              hintOnFocusOnly={isSignup}
               error={fieldErrors.password}
               trailing={passwordToggle}
             />
@@ -258,7 +259,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-sm text-secondary mt-5">
+          <p className={`text-sm text-secondary ${isSignup ? 'mt-4' : 'mt-5'}`}>
             {isSignup ? 'Already have an account? ' : 'New to StudyFinder? '}
             <button
               type="button"
@@ -270,7 +271,7 @@ export default function LoginPage() {
             </button>
           </p>
 
-          <div className="auth-divider my-7" role="separator">
+          <div className={`auth-divider ${isSignup ? 'my-4' : 'my-7'}`} role="separator">
             <span>or</span>
           </div>
 
@@ -282,10 +283,12 @@ export default function LoginPage() {
           >
             {pending === 'guest' ? 'Opening guest view…' : 'Continue as guest'}
           </button>
-          <p className="text-xs text-muted mt-3 leading-relaxed">
-            Guests can browse public spots like the Student Union and King Library. Log in to see
-            every building and add your own reports.
-          </p>
+          {!isSignup && (
+            <p className="text-xs text-muted mt-3 leading-relaxed">
+              Guests can browse public spots like the Student Union and King Library. Log in to see
+              every building and add your own reports.
+            </p>
+          )}
         </div>
       </main>
     </div>
@@ -334,6 +337,8 @@ type TextFieldProps = {
   autoComplete?: string
   placeholder?: string
   hint?: string
+  // Show the hint only while the field has focus (errors always show).
+  hintOnFocusOnly?: boolean
   error?: string
   trailing?: ReactNode
 }
@@ -347,10 +352,12 @@ function TextField({
   autoComplete,
   placeholder,
   hint,
+  hintOnFocusOnly = false,
   error,
   trailing,
 }: TextFieldProps) {
-  const hintId = hint && !error ? `${id}-hint` : undefined
+  const [focused, setFocused] = useState(false)
+  const hintId = hint && !error && (!hintOnFocusOnly || focused) ? `${id}-hint` : undefined
   const errorId = error ? `${id}-error` : undefined
 
   return (
@@ -365,6 +372,8 @@ function TextField({
           type={type}
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           autoComplete={autoComplete}
           placeholder={placeholder}
           aria-invalid={error ? true : undefined}

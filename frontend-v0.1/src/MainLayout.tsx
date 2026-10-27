@@ -10,29 +10,15 @@ import RewardsPreview from './components/RewardsPreview'
 import SpotFilters from './components/SpotFilters'
 import SpotSection from './components/SpotSection'
 import MapView from './components/MapView'
+import FlashBanner from './components/FlashBanner'
+import { distanceInMiles } from './utils/distance'
 
 type UserLocation = {
   lat: number
   lng: number
 }
-function distanceInMiles(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-) {
-  const earthRadiusMiles = 3958.8
-  const toRadians = (degrees: number) => degrees * (Math.PI / 180)
-  const dLat = toRadians(lat2 - lat1)
-  const dLng = toRadians(lng2 - lng1)
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRadians(lat1)) *
-      Math.cos(toRadians(lat2)) *
-      Math.sin(dLng / 2) ** 2
-
-  return earthRadiusMiles * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
+// Tabs that can be opened directly with study-spots.jsp?nav=... (used by the Study Spot page header).
+const NAV_TABS = ['Home', 'Find Spots', 'Rewards']
 
 export default function MainLayout() {
   const currentUser = window.currentUser
@@ -44,7 +30,10 @@ export default function MainLayout() {
   // const [locationDismissed, setLocationDismissed] = useState(false)
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
-  const [activeNav, setActiveNav] = useState('Home')
+  const [activeNav, setActiveNav] = useState(() => {
+    const nav = new URLSearchParams(window.location.search).get('nav')
+    return nav && NAV_TABS.includes(nav) ? nav : 'Home'
+  })
   const requestUserLocation = () => {
     if (!navigator.geolocation) {
       setLocationError('Location is not supported by your browser.')
@@ -118,6 +107,7 @@ export default function MainLayout() {
       />
 
       <main className="px-6 pb-16">
+        <FlashBanner />
 
         {/* =========================
             HOME PAGE

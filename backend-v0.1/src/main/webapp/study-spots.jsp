@@ -43,7 +43,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>StudyFinder Study Spots</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-ZvQLUhKu.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-7Q6Tq0-_.css"></head>
 <body>
 <% if (databaseError != null) { %><p style="padding:1rem;color:#9b1c1c;"><%= databaseError %></p><% } %>
 <div id="root"></div>
@@ -51,6 +51,8 @@
 window.studyFinderContext = "<%= js(request.getContextPath()) %>";
 window.currentUser = { id: <%= currentUser.id() == null ? "null" : currentUser.id() %>, name: "<%= js(currentUser.name()) %>", email: "<%= js(currentUser.email()) %>", role: "<%= js(currentUser.role()) %>" };
 window.studentPoints = <%= points %>;
+window.flashMessage = "<%= js(request.getParameter("message")) %>";
+window.flashError = "<%= js(request.getParameter("error")) %>";
 window.studySpots = [
 <% for (int i = 0; i < studySpots.size(); i++) {
     StudySpot spot = studySpots.get(i);
@@ -81,5 +83,5 @@ window.reviews = [<% for (int i=0;i<reviews.size();i++) { Map<String,Object> row
 window.activityLogs = [<% for (int i=0;i<activityLogs.size();i++) { Map<String,Object> row=activityLogs.get(i); %>{userId:<%= row.get("user_id") %>,actionType:"<%= js((String) row.get("action_type")) %>",targetType:"<%= js((String) row.get("target_type")) %>",targetId:<%= row.get("target_id") == null ? "null" : row.get("target_id") %>}<%= i+1<activityLogs.size()?",":"" %><% } %>];
 window.verifications = [<% for (int i=0;i<verifications.size();i++) { Map<String,Object> row=verifications.get(i); %>{reportId:<%= row.get("report_id") %>,userId:<%= row.get("user_id") %>,result:"<%= js((String) row.get("result")) %>"}<%= i+1<verifications.size()?",":"" %><% } %>];
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-C1WIwv8T.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-CCL6D4Bg.js"></script>
 </body></html>

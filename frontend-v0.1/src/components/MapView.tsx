@@ -4,6 +4,7 @@ import type { StudySpot } from "@/model/StudySpot";
 import type { UserLocation } from "@/model/StudySpot";
 import { useEffect, useState } from 'react'
 import L, { bounds } from 'leaflet'
+import { spotDetailUrl } from '../utils/links'
 
 type MapViewProps = {spots: StudySpot[]; userLocation?: UserLocation; activeFilter: string}
 type Coordinates = {lat: number; lng: number}
@@ -63,6 +64,7 @@ export default function MapView({ spots, userLocation, activeFilter }: MapViewPr
                         <strong>{spot.name}</strong>
                         <br />{spot.building}<br />
                         {spot.accessType}
+                        <br /><a href={spotDetailUrl(spot.id)}>View details →</a>
                     </Popup>
                 </Marker>))}
             {hasNearbySpots && (

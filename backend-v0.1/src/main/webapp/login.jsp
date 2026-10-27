@@ -15,6 +15,9 @@
     String requestMode = request.getParameter("mode");
     String authMode = authService.hasPendingSignup(request) || "verify".equals(requestMode)
             ? "verify" : ("signup".equals(request.getParameter("view")) || "signup".equals(requestMode) ? "signup" : "login");
+    // Sent here by rate-spot.jsp / report-spot.jsp when a guest tries to rate or report.
+    if ("rate".equals(request.getParameter("notice"))) error = "Log in to rate spots.";
+    if ("report".equals(request.getParameter("notice"))) error = "Log in to report conditions.";
 
     if ("POST".equalsIgnoreCase(request.getMethod())) {
         try {
@@ -54,7 +57,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StudyFinder Login</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-ZvQLUhKu.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-7Q6Tq0-_.css">
   <style>
     .auth-input { width:100%; border:0; border-bottom:1px solid #e2ddd5; border-radius:0; background:transparent; color:#1c1a16; outline:none; padding:.65rem 0; font:inherit; }
     .auth-input::placeholder { color:#8a8070; }
@@ -75,6 +78,6 @@
     window.authSuccess = "<%= js(success) %>";
     window.studyFinderContext = "<%= js(request.getContextPath()) %>";
   </script>
-  <script type="module" src="${pageContext.request.contextPath}/assets/index-C1WIwv8T.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/assets/index-CCL6D4Bg.js"></script>
 </body>
 </html>
