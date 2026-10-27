@@ -14,3 +14,4 @@ USE studyfinder;
 
 ALTER TABLE reports
   ADD COLUMN wifi_quality VARCHAR(20) DEFAULT NULL AFTER smell_level;
+
