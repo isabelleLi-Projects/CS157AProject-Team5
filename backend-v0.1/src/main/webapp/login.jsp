@@ -54,7 +54,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StudyFinder Login</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-DEVZBIfi.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-ZvQLUhKu.css">
   <style>
     .auth-input { width:100%; border:0; border-bottom:1px solid #e2ddd5; border-radius:0; background:transparent; color:#1c1a16; outline:none; padding:.65rem 0; font:inherit; }
     .auth-input::placeholder { color:#8a8070; }
@@ -75,6 +75,6 @@
     window.authSuccess = "<%= js(success) %>";
     window.studyFinderContext = "<%= js(request.getContextPath()) %>";
   </script>
-  <script type="module" src="${pageContext.request.contextPath}/assets/index-DnrjtiLu.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/assets/index-C1WIwv8T.js"></script>
 </body>
 </html>
