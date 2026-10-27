@@ -194,7 +194,7 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                 <span className="font-medium">{spot.buildingName}</span> → {spot.locationDetails}
               </p>
               {distance !== null ? (
-                <p className="text-xs text-muted mt-1">About {distance.toFixed(2)} miles away (straight line)</p>
+                <p className="text-sm text-muted mt-1">About {distance.toFixed(2)} miles away (straight line)</p>
               ) : (
                 <button type="button" onClick={requestLocation} className="btn-link text-xs mt-1">
                   Show my distance
@@ -228,7 +228,7 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                     <li key={amenity.name}>
                       <p className="text-sm font-medium text-main">{amenity.name}</p>
                       {(amenity.notes || amenity.description) && (
-                        <p className="text-xs text-muted">{amenity.notes || amenity.description}</p>
+                        <p className="text-sm text-muted">{amenity.notes || amenity.description}</p>
                       )}
                     </li>
                   ))}

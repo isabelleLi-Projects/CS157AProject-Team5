@@ -2,7 +2,7 @@ import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap, }  from "
 import 'leaflet/dist/leaflet.css'
 import type { StudySpot } from "@/model/StudySpot";
 import type { UserLocation } from "@/model/StudySpot";
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import L, { bounds } from 'leaflet'
 import { spotDetailUrl } from '../utils/links'
 
@@ -18,13 +18,24 @@ const studySpotIcon = L.divIcon({html: '<span style="font-size: 28px;">📍</spa
     popupAnchor: [0, -28],
   })
 
-function RecenterMap({ location }: { location?: Coordinates }) {
+function RecenterMap({ spots, userLocation, showUserLocation }: { spots: StudySpot[]; userLocation?: Coordinates; showUserLocation: boolean }) {
     const map = useMap()
     useEffect(() => {
-      if (location) {
-        map.setView([location.lat, location.lng], 50)
+      if (showUserLocation && userLocation) {
+        map.setView([userLocation.lat, userLocation.lng], 50)
       }
-    }, [location, map])
+      if (spots.length === 0) {
+        map.setView(SJSU_CENTER, 16)
+        return
+      }
+      const spotBounds = L.latLngBounds(
+        spots.map((spot) => [spot.latitude, spot.longitude] as [number, number])
+      )
+      map.fitBounds(spotBounds, {
+        padding: [40, 40],
+        maxZoom: 16,
+      })
+    }, [map, spots, userLocation, showUserLocation])
     return null
   }
 function FitStudySpots({spots, activeFilter,}: 
@@ -48,15 +59,15 @@ function FitStudySpots({spots, activeFilter,}:
     }
 
 export default function MapView({ spots, userLocation, activeFilter }: MapViewProps) {
-    const hasNearbySpots = userLocation !== undefined && spots.length > 0
-    const center: [number, number] = hasNearbySpots
+    const showUserLocation = activeFilter === 'Near Me' && userLocation !== undefined && spots.length > 0
+    const center: [number, number] = showUserLocation && userLocation
   ? [userLocation.lat, userLocation.lng]
   : SJSU_CENTER
     return (
         // display map
         <MapContainer center={center} zoom={50} style={{height: '450px', width: '100%'}}>
             <FitStudySpots spots={spots} activeFilter={activeFilter}/>
-            <RecenterMap location={hasNearbySpots ? userLocation: undefined} />
+            <RecenterMap spots={spots} userLocation={userLocation} showUserLocation={showUserLocation} />
             <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors"/>
             {spots.map((spot) => (
                 <Marker key={spot.id} position={[spot.latitude, spot.longitude,]}icon={studySpotIcon}>
@@ -67,7 +78,7 @@ export default function MapView({ spots, userLocation, activeFilter }: MapViewPr
                         <br /><a href={spotDetailUrl(spot.id)}>View details →</a>
                     </Popup>
                 </Marker>))}
-            {hasNearbySpots && (
+            {showUserLocation && userLocation &&(
                 <CircleMarker 
                     center={[userLocation.lat, userLocation.lng]} radius={5} pathOptions={{color: 'red', fillColor: 'red', fillOpacity: 1,}}>
                     <Popup> Your current location </Popup>

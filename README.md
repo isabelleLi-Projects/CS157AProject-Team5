@@ -106,6 +106,7 @@ STUDYFINDER_DB_PASSWORD=your_mysql_password
 ## Database Setup
 
 1. Start MySQL.
+
 2a. From the project folder, run to create and delete tables:
 
 ```bash
@@ -115,4 +116,8 @@ mysql -u root -p < sql/schema.sql
 2b. From the project folder, run to insert sample data:
 ```bash
 mysql -u root -p < sql/sample_data.sql
+```
+2c. 
+```bash
+mysql -u root -p < backend-v0.1/sql/migrations/alter_reports_add_wifi.sql
 ```

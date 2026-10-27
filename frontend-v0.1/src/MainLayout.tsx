@@ -83,7 +83,7 @@ export default function MainLayout() {
       distanceInMiles(userLocation.lat, userLocation.lng, spot.latitude, spot.longitude) <= 0.5
       return canAccess && matchesSearch && matchesFilter
     })
-  }, [search, activeFilter, isGuest])
+  }, [search, activeFilter, isGuest, userLocation])
 
   const navigateTo = (nav: string) => {
     setActiveNav(nav)

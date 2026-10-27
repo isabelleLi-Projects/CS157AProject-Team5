@@ -97,5 +97,5 @@ window.spotDetail = {
   isOwnLatestReport: <%= latest != null && currentUser.id() != null && latest.authorId() == currentUser.id() %>
 };
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-CCL6D4Bg.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-CXiabIo9.js"></script>
 </body></html>
