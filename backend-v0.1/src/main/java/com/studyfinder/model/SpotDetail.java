@@ -20,7 +20,7 @@ public class SpotDetail {
     }
 
     /** One visible row from reviews JOIN users. */
-    public record Review(String firstName, String text, String createdAt) {
+    public record Review(String firstName, int rating, String text, String createdAt) {
     }
 
     private int spotId;

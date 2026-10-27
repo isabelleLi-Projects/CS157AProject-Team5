@@ -1,8 +1,5 @@
 package com.studyfinder.service;
 
-import com.studyfinder.dao.SpotDetailDAO;
-import com.studyfinder.model.SpotDetail;
-
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -13,6 +10,9 @@ import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import com.studyfinder.dao.SpotDetailDAO;
+import com.studyfinder.model.SpotDetail;
 
 /**
  * Business layer for the Study Spot page.
@@ -104,4 +104,12 @@ public class SpotService {
         }
         spot.setOpenNow(openNow);
     }
+    public String submitReview(
+        int userId,
+        int spotId,
+        int rating,
+        String reviewText
+        ) throws SQLException {
+            return spotDetailDAO.submitReview(userId, spotId, rating, reviewText);
+        }
 }

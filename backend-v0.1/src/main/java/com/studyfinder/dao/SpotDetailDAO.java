@@ -59,12 +59,14 @@ public class SpotDetailDAO {
                 + "LIMIT 5";
 
         // Visible reviews for this spot with the reviewer's first name (read-only here).
-        String reviewSql = "SELECT SUBSTRING_INDEX(u.full_name, ' ', 1) AS first_name, "
-                + "rv.review_text, DATE_FORMAT(rv.created_at, '%Y-%m-%d') AS created_at "
-                + "FROM reviews rv "
-                + "JOIN users u ON u.user_id = rv.user_id "
-                + "WHERE rv.spot_id = ? AND rv.is_visible = 1 "
-                + "ORDER BY rv.created_at DESC";
+        String reviewSql =
+        "SELECT SUBSTRING_INDEX(u.full_name, ' ', 1) AS first_name, "
+        + "rv.rating, rv.review_text, "
+        + "DATE_FORMAT(rv.created_at, '%Y-%m-%d') AS created_at "
+        + "FROM reviews rv "
+        + "JOIN users u ON u.user_id = rv.user_id "
+        + "WHERE rv.spot_id = ? AND rv.is_visible = 1 "
+        + "ORDER BY rv.created_at DESC";
 
         try (Connection con = DatabaseConnection.getConnection()) {
             SpotDetail spot;
@@ -126,8 +128,11 @@ public class SpotDetailDAO {
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         spot.getReviews().add(new SpotDetail.Review(
-                                rs.getString("first_name"), rs.getString("review_text"), rs.getString("created_at")));
-                    }
+                            rs.getString("first_name"),
+                            rs.getInt("rating"),
+                            rs.getString("review_text"),
+                            rs.getString("created_at")
+                    ));}
                 }
             }
 
@@ -292,6 +297,7 @@ public class SpotDetailDAO {
         String insertLog = "INSERT INTO activity_logs "
                 + "(user_id, action_type, target_type, target_id, details, created_at) "
                 + "VALUES (?, 'verify_report', 'report', ?, ?, NOW())";
+        
 
         try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
@@ -357,5 +363,82 @@ public class SpotDetailDAO {
                 con.setAutoCommit(true);
             }
         }
+    }
+    public String submitReview(int userId, int spotId, int rating, String reviewText) throws SQLException {
+        if (rating < 1 || rating > 5) {
+            return "Rating must be between 1 and 5.";
+        }
+        String text = reviewText == null ? "" : reviewText.trim();
+        if (text.isEmpty()) {
+            return "Please write a review.";
+        }
+        if (text.length() > 255) {
+            return "Review must be 255 characters or less.";
+        }
+        String studentSql =
+                "SELECT user_id FROM students WHERE user_id = ?";
+
+        String spotSql =
+                "SELECT spot_id FROM study_spots "
+                + "WHERE spot_id = ? AND is_active = 1";
+
+        String duplicateSql =
+                "SELECT review_id FROM reviews "
+                + "WHERE user_id = ? AND spot_id = ?";
+
+        String insertSql =
+                "INSERT INTO reviews "
+                + "(user_id, spot_id, rating, review_text, created_at, is_visible) "
+                + "VALUES (?, ?, ?, ?, NOW(), 1)";
+        String addPointsSql =
+            "UPDATE students "
+            + "SET points = points + 5 "
+            + "WHERE user_id = ?";
+
+        try (Connection con = DatabaseConnection.getConnection()) {
+            try (PreparedStatement stmt = con.prepareStatement(studentSql)) {
+                stmt.setInt(1, userId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return "Only students can leave reviews.";
+                    }
+                }
+            }
+
+            try (PreparedStatement stmt = con.prepareStatement(spotSql)) {
+                stmt.setInt(1, spotId);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return "Study spot not found.";
+                    }
+                }
+            }
+            try (PreparedStatement stmt = con.prepareStatement(duplicateSql)) {
+                stmt.setInt(1, userId);
+                stmt.setInt(2, spotId);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return "You already reviewed this study spot.";
+                    }
+                }
+            }
+            try (PreparedStatement stmt = con.prepareStatement(insertSql)) {
+                stmt.setInt(1, userId);
+                stmt.setInt(2, spotId);
+                stmt.setInt(3, rating);
+                stmt.setString(4, text);
+                stmt.executeUpdate();
+            }
+            try (PreparedStatement pointsStmt =
+                con.prepareStatement(addPointsSql)) {
+   
+                pointsStmt.setInt(1, userId);
+                pointsStmt.executeUpdate();
+            }
+        }
+
+        return null;
     }
 }

@@ -84,7 +84,6 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
         </a>
 
         <FlashBanner />
-
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-6 mt-4">
           {/* Left column: about, conditions + rating, recent reports, reviews */}
           <div className="space-y-6">
@@ -160,22 +159,40 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                 </ul>
               </Card>
             )}
-
             <Card title="Reviews">
               {spot.reviews.length > 0 ? (
-                <ul className="space-y-3">
-                  {spot.reviews.map((review, index) => (
-                    <li key={index}>
-                      <p className="text-sm text-main">{review.text}</p>
-                      <p className="text-[11px] text-muted mt-0.5">
-                        {review.firstName} · {review.createdAt}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <ul className="space-y-3">
+                    {spot.reviews.slice(0, 3).map((review, index) => (
+                      <li key={index}>
+                        <div className="text-yellow-500">
+                          {'★'.repeat(review.rating)}
+                          <span className="text-gray-300">
+                            {'★'.repeat(5 - review.rating)}
+                          </span>
+                        </div>
+
+                        <p className="text-sm text-main mt-1">{review.text}</p>
+
+                        <p className="text-[11px] text-muted mt-0.5">
+                          {review.firstName} · {review.createdAt}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {spot.reviews.length > 3 && (
+                    <button type="button" className="btn-link text-sm mt-4">
+                      View all {spot.reviews.length} reviews
+                    </button>
+                  )}
+                </>
               ) : (
                 <p className="text-sm text-muted">No reviews yet.</p>
               )}
+            </Card>
+            <Card title="Leave a review">
+              <ReviewForm spotId={spot.spotId} role={role} />
             </Card>
           </div>
 
@@ -241,6 +258,74 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
         </div>
       </main>
     </div>
+  )
+}
+
+function ReviewForm({
+  spotId,
+  role,
+}: {
+  spotId: number
+  role: string
+}) {
+  const [rating, setRating] = useState(0)
+
+  if (role === 'guest') {
+    return (
+      <a
+        href={`${window.studyFinderContext ?? ''}/login.jsp`}
+        className="btn-link text-sm"
+      >
+        Log in to leave a review
+      </a>
+    )
+  }
+
+  if (role !== 'student') {
+    return <p className="text-sm text-muted">Only students can leave reviews.</p>
+  }
+
+  return (
+    <form
+      method="post"
+      action={`${window.studyFinderContext ?? ''}/review-spot.jsp`}
+      className="space-y-4"
+    >
+      <input type="hidden" name="spotId" value={spotId} />
+      <input type="hidden" name="rating" value={rating} />
+
+      <div>
+        <p className="text-sm text-main mb-2">Your rating</p>
+
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => setRating(star)}
+              className={`text-3xl ${
+                star <= rating ? 'text-yellow-500' : 'text-gray-300'
+              }`}
+              aria-label={`${star} stars`}
+            >
+              ★
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <textarea
+        name="reviewText"
+        required
+        maxLength={255}
+        rows={4}
+        placeholder="Share your experience at this study spot..."
+        className="search-input w-full px-3 py-2 text-sm resize-none"
+      />
+      <button type="submit" disabled={rating === 0} className="btn-primary px-4 py-2.5 text-sm disabled:opacity-50">
+        Submit review
+      </button>
+    </form>
   )
 }
 

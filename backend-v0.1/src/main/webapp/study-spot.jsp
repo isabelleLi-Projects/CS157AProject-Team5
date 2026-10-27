@@ -63,7 +63,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><%= spot.getName().replace("<", "&lt;") %> | StudyFinder</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-7Q6Tq0-_.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-Br5emr8F.css"></head>
 <body>
 <div id="root"></div>
 <script>
@@ -90,12 +90,24 @@ window.spotDetail = {
   reports: [<% for (int i = 0; i < reports.size(); i++) { SpotDetail.Report r = reports.get(i); %>
     { reportId: <%= r.reportId() %>, authorName: "<%= js(r.authorFirstName()) %>", noise: "<%= js(r.noise()) %>", crowdedness: "<%= js(r.crowdedness()) %>", outlets: <%= r.outlets() == null ? "null" : r.outlets() %>, smell: "<%= js(r.smell()) %>", wifi: "<%= js(r.wifi()) %>", notes: "<%= js(r.notes()) %>", createdAt: "<%= js(r.createdAt()) %>", minutesAgo: <%= r.minutesAgo() %>, confirmed: <%= r.confirmed() %>, disputed: <%= r.disputed() %> }<%= i + 1 < reports.size() ? "," : "" %><% } %>
   ],
-  reviews: [<% for (int i = 0; i < spot.getReviews().size(); i++) { SpotDetail.Review rv = spot.getReviews().get(i); %>
-    { firstName: "<%= js(rv.firstName()) %>", text: "<%= js(rv.text()) %>", createdAt: "<%= js(rv.createdAt()) %>" }<%= i + 1 < spot.getReviews().size() ? "," : "" %><% } %>
-  ],
+  reviews: [
+        <%
+            for (int i = 0; i < spot.getReviews().size(); i++) {
+                SpotDetail.Review rv = spot.getReviews().get(i);
+        %>
+        {
+            firstName: "<%= js(rv.firstName()) %>",
+            rating: <%= rv.rating() %>,
+            text: "<%= js(rv.text()) %>",
+            createdAt: "<%= js(rv.createdAt()) %>"
+        }<%= i + 1 < spot.getReviews().size() ? "," : "" %>
+        <%
+        }
+        %>
+],
   currentUserRating: <%= jsOrNull(spot.getCurrentUserRating()) %>,
   isOwnLatestReport: <%= latest != null && currentUser.id() != null && latest.authorId() == currentUser.id() %>
 };
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-IW3cjxxe.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-CiMsVqk8.js"></script>
 </body></html>

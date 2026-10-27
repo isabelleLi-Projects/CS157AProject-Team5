@@ -48,6 +48,12 @@ export interface SpotDetail {
   currentUserRating: 'confirmed' | 'disputed' | null
   isOwnLatestReport: boolean
 }
+export interface SpotReview {
+  firstName: string
+  rating: number
+  text: string
+  createdAt: string
+}
 
 declare global {
   interface Window {
