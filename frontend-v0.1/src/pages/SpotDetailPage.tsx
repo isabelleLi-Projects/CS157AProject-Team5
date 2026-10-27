@@ -191,9 +191,7 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                 <p className="text-sm text-muted">No reviews yet.</p>
               )}
             </Card>
-            <Card title="Leave a review">
-              <ReviewForm spotId={spot.spotId} role={role} />
-            </Card>
+            
           </div>
 
           {/* Right column: directions, hours, amenities */}
@@ -253,6 +251,10 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
               ) : (
                 <p className="text-sm text-muted">No amenities listed.</p>
               )}
+            </Card>
+            
+            <Card title="Leave a review">
+              <ReviewForm spotId={spot.spotId} role={role} />
             </Card>
           </div>
         </div>
