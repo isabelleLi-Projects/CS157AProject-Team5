@@ -375,21 +375,27 @@ public class SpotDetailDAO {
         if (text.length() > 255) {
             return "Review must be 255 characters or less.";
         }
+        
+        // check whether the user is a student. 
+        // ? is replaced by the logged in user's id
         String studentSql =
                 "SELECT user_id FROM students WHERE user_id = ?";
-
+        // check whether the study spot is active
+        // spot_id = ? finds the requested spot
         String spotSql =
                 "SELECT spot_id FROM study_spots "
                 + "WHERE spot_id = ? AND is_active = 1";
 
+        // check whether the same user already reviewed the same spot 
         String duplicateSql =
                 "SELECT review_id FROM reviews "
                 + "WHERE user_id = ? AND spot_id = ?";
-
+        // adds a new row to reviews with the current date and time 
         String insertSql =
                 "INSERT INTO reviews "
                 + "(user_id, spot_id, rating, review_text, created_at, is_visible) "
                 + "VALUES (?, ?, ?, ?, NOW(), 1)";
+        // adds 5 points to the student who reviewed        
         String addPointsSql =
             "UPDATE students "
             + "SET points = points + 5 "
