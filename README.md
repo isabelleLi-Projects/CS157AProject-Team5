@@ -13,6 +13,21 @@ The study-spots page is served directly by `study-spots.jsp`. It loads data thro
 `StudySpotService`, which calls `StudySpotDAO`; the DAO is the only layer that
 executes SQL. No study-spot servlet is required.
 
+## Frontend Dependencies
+
+The frontend uses Leaflet to display study-spot maps.
+
+Leaflet packages:
+
+- `leaflet` — core map library
+- `react-leaflet` — React components for Leaflet
+- `@types/leaflet` — TypeScript definitions for Leaflet
+
+Install them with:
+
+```bash
+npm install leaflet react-leaflet
+npm install --save-dev @types/leaflet
 
 ## Database Configuration
 
@@ -117,7 +132,7 @@ mysql -u root -p < sql/schema.sql
 ```bash
 mysql -u root -p < sql/sample_data.sql
 ```
-2c. 
+2c. From the project folder, run to alter table:
 ```bash
 mysql -u root -p < backend-v0.1/sql/migrations/alter_reports_add_wifi.sql
 ```

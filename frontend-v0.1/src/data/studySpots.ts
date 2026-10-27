@@ -8,6 +8,7 @@ type DatabaseStudySpot = {
   building: string
   location: string
   capacity: number
+  open?: boolean | null
   latitude: number
   longitude: number
   accessType: string
@@ -46,6 +47,7 @@ export const STUDY_SPOTS: StudySpot[] = (window.studySpots ?? []).map(
     location: spot.location,
     latitude: spot.latitude,
     longitude: spot.longitude,
+    open: spot.open ?? false,
     accessType: spot.accessType,
     noise: spot.noise ?? 'Unknown',
     noiseLevel: level(spot.noise),
@@ -56,7 +58,6 @@ export const STUDY_SPOTS: StudySpot[] = (window.studySpots ?? []).map(
     rating: 0,
     img: spot.img ?? '',
     tags: [spot.accessType, ...(spot.amenities ?? [])].filter(Boolean),
-    open: true,
     building: spot.building,
     capacity: spot.capacity,
     photoPath: spot.photoPath,

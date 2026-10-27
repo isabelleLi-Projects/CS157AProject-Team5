@@ -19,6 +19,7 @@ public class StudySpot {
     private String outlets;
     private String updated;
     private final List<String> amenities = new ArrayList<>();
+    private Boolean openNow;
 
     public int getSpotId() {
         return spotId;
@@ -104,4 +105,8 @@ public class StudySpot {
     public void setUpdated(String updated) { this.updated = updated; }
     public List<String> getAmenities() { return amenities; }
     public void addAmenity(String amenity) { if (amenity != null && !amenity.isBlank()) amenities.add(amenity); }
+    
+    public Boolean getOpenNow() {return openNow;}
+    
+    public void setOpenNow(Boolean openNow) {this.openNow = openNow;}
 }
