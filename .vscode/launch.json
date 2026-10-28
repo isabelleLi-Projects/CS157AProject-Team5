@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        
+
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "PasswordUtil",
+            "request": "launch",
+            "mainClass": "com.studyfinder.util.PasswordUtil",
+            "projectName": "SJSUStudyFinder",
+            "env": {
+            "STUDYFINDER_DB_URL": "jdbc:mysql://127.0.0.1:3306/studyfinder?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",
+            "STUDYFINDER_DB_USER": "root",
+            "STUDYFINDER_DB_PASSWORD": "your_actual_mysql_password"
+            }
+        }
+    ]
+}

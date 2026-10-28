@@ -1,6 +1,7 @@
 import type { StudySpot } from '../model/StudySpot'
 import CrowdBar from './CrowdBar'
 import NoiseChip from './NoiseChip'
+import { spotDetailUrl } from '../utils/links'
 
 type SpotCardProps = {
   spot: StudySpot
@@ -9,9 +10,10 @@ type SpotCardProps = {
 
 export default function SpotCard({ spot }: SpotCardProps) {
   return (
+    <a href={spotDetailUrl(spot.id)} className="block">
     <article className="spot-card rounded-2xl">
       <div className="relative">
-        <img src={spot.img} alt={spot.name} className="spot-image" />
+      <img src={spot.img} alt={spot.name} className="spot-image" />
         <div className="absolute top-2 right-2">
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${spot.open ? 'badge-open' : 'badge-closed'}`}>
             {spot.open ? 'Open' : 'Closed'}
@@ -53,5 +55,6 @@ export default function SpotCard({ spot }: SpotCardProps) {
         </div>
       </div>
     </article>
+    </a>
   )
 }
