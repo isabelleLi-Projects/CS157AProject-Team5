@@ -17,11 +17,19 @@ public class StudySpotDAO {
         List<StudySpot> studySpots = new ArrayList<>();
 
         String sql =
-            "SELECT s.spot_id, s.spot_name, "
+            "SELECT s.spot_id, s.spot_name, " 
             + "b.acronym AS building, "
             + "s.location_details, s.capacity, "
-            + "s.latitude, s.longitude, s.is_active, s.access_type, "
-            + "s.photo_path, "
+            + "s.latitude, s.longitude, s.is_active, s.access_type, s.photo_path,"
+            + "CASE "
+            + "WHEN bh.opening_time IS NULL THEN 0 "
+            + "WHEN bh.closing_time > bh.opening_time "
+            + "AND TIME(NOW()) >= bh.opening_time "
+            + "AND TIME(NOW()) < bh.closing_time THEN 1 "
+            + "WHEN bh.closing_time <= bh.opening_time "
+            + "AND (TIME(NOW()) >= bh.opening_time "
+            + "OR TIME(NOW()) < bh.closing_time) THEN 1 "
+            + "ELSE 0 END AS open_now, "
             + "COALESCE(r.noise_level, 'Unknown') AS noise_level, "
             + "COALESCE(r.crowdedness, 'Unknown') AS crowdedness, "
             + "COALESCE(CAST(r.outlets_available AS CHAR), 'Unknown') AS outlets, "
@@ -30,15 +38,17 @@ public class StudySpotDAO {
             + "GROUP_CONCAT(DISTINCT a.amenity_name SEPARATOR '||') AS amenities "
             + "FROM study_spots s "
             + "LEFT JOIN buildings b ON b.building_id = s.building_id "
+            + "LEFT JOIN building_hours bh ON bh.building_id = s.building_id AND bh.day_of_week = DAYNAME(NOW()) "
             + "LEFT JOIN reports r ON r.report_id = ("
-            + "SELECT r2.report_id FROM reports r2 "
-            + "WHERE r2.spot_id = s.spot_id "
-            + "ORDER BY r2.created_at DESC, r2.report_id DESC LIMIT 1) "
+                + "SELECT r2.report_id FROM reports r2 "
+                + "WHERE r2.spot_id = s.spot_id "
+                + "ORDER BY r2.created_at DESC, r2.report_id DESC LIMIT 1) "
             + "LEFT JOIN provides p ON p.spot_id = s.spot_id "
             + "LEFT JOIN amenities a ON a.amenity_id = p.amenity_id "
             + "AND a.is_active = 1 "
             + "WHERE s.is_active = 1 "
             + "GROUP BY s.spot_id, s.spot_name, b.acronym, "
+            + "bh.opening_time, bh.closing_time, "
             + "s.location_details, s.capacity, s.latitude, s.longitude, "
             + "s.is_active, s.access_type, s.photo_path, "
             + "r.noise_level, r.crowdedness, r.outlets_available, r.created_at "
@@ -65,6 +75,8 @@ public class StudySpotDAO {
                 spot.setCrowdedness(rs.getString("crowdedness"));
                 spot.setOutlets(rs.getString("outlets"));
                 spot.setUpdated(rs.getString("report_time"));
+                spot.setOpenNow(rs.getBoolean("open_now"));
+
 
                 String amenities = rs.getString("amenities");
                 if (amenities != null) {

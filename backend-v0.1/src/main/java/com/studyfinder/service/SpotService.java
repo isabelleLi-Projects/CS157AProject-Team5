@@ -91,13 +91,13 @@ public class SpotService {
 
         boolean openNow;
         if (close.isAfter(open)) {
+            // Normal hours, such as 8:00 AM–10:00 PM
             openNow = !time.isBefore(open) && time.isBefore(close);
         } else {
-            // Closes after midnight, e.g. 07:00 -> 01:00: open from opening time until midnight.
-            openNow = !time.isBefore(open);
+            // Overnight hours, such as 7:00 AM–1:00 AM
+            openNow = !time.isBefore(open)|| time.isBefore(close);
         }
-
-        // Still inside yesterday's hours that ran past midnight, e.g. 00:30 when yesterday closed at 01:00.
+        // Check whether yesterday's hours continue past midnight.
         LocalTime[] yesterdayHours = hours.get(yesterday);
         if (!openNow && yesterdayHours != null && !yesterdayHours[1].isAfter(yesterdayHours[0])) {
             openNow = time.isBefore(yesterdayHours[1]);
