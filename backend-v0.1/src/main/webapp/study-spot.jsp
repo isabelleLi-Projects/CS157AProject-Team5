@@ -5,6 +5,7 @@
 <%@ page import="com.studyfinder.model.SpotDetail" %>
 <%@ page import="com.studyfinder.service.SpotService" %>
 <%@ page import="com.studyfinder.util.AuthSession" %>
+<%@ page import="com.studyfinder.dao.StudyFinderDAO" %>
 <%!
     private String js(String value) {
         if (value == null) return "";
@@ -53,6 +54,10 @@
         response.sendRedirect(request.getContextPath() + "/study-spots.jsp?error=Log+in+to+view+this+spot");
         return;
     }
+    
+    // example: http://localhost:8080/SJSUStudyFinder/study-spot.jsp?id=1
+    // Every time someone successfully opens study-spot.jsp?id=1, one row will be added to study_spot_views
+    new StudyFinderDAO().recordStudySpotView(spotId, currentUser.id());
 
     String imageUrl = "";
     if (spot.getPhotoPath() != null && !spot.getPhotoPath().isBlank()) {
@@ -63,7 +68,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><%= spot.getName().replace("<", "&lt;") %> | StudyFinder</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-Br5emr8F.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-CtfqJuxQ.css"></head>
 <body>
 <div id="root"></div>
 <script>
@@ -109,5 +114,5 @@ window.spotDetail = {
   isOwnLatestReport: <%= latest != null && currentUser.id() != null && latest.authorId() == currentUser.id() %>
 };
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-D4QAK4Cv.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-DxaClr9S.js"></script>
 </body></html>

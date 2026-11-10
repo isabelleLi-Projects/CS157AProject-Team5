@@ -1,0 +1,6 @@
+type EditProfileProps = { onClose: () => void }
+
+export default function EditProfile({ onClose }: EditProfileProps) {
+  const currentUser = window.currentUser
+  return <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4"><form className="surface-background w-full max-w-md rounded-2xl p-6 shadow-xl" onSubmit={(event) => event.preventDefault()}><div className="flex items-center justify-between"><h2 className="font-display text-2xl text-main">Edit profile</h2><button type="button" className="text-secondary" onClick={onClose}>Close</button></div><label className="mt-5 block text-sm font-medium text-main">Full name<input className="search-input mt-1 p-3" defaultValue={currentUser?.name ?? ''} /></label><label className="mt-4 block text-sm font-medium text-main">Email<input className="search-input mt-1 bg-gray-100 p-3" value={currentUser?.email ?? ''} readOnly /></label><label className="mt-4 block text-sm font-medium text-main">New password<input type="password" className="search-input mt-1 p-3" /></label><div className="mt-6 flex justify-end gap-3"><button type="button" className="btn-secondary px-4 py-2" onClick={onClose}>Cancel</button><button type="submit" className="btn-primary px-4 py-2">Save changes</button></div></form></div>
+}

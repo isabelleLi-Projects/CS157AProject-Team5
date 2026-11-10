@@ -106,4 +106,26 @@ public class StudyFinderDAO {
             }
         }
     }
+    
+    // insert into study spot views when a user clicks on the study spot
+    public void recordStudySpotView(int spotId, Integer userId) throws SQLException {
+        String sql =
+            "INSERT INTO study_spot_views (spot_id, user_id) "
+          + "VALUES (?, ?)";
+    
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+    
+            stmt.setInt(1, spotId);
+    
+            if (userId == null) {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            } else {
+                stmt.setInt(2, userId);
+            }
+    
+            stmt.executeUpdate();
+        }
+    }
+
 }

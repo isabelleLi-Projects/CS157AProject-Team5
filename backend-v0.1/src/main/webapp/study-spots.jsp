@@ -6,6 +6,7 @@
 <%@ page import="com.studyfinder.model.SessionUser" %>
 <%@ page import="com.studyfinder.model.StudySpot" %>
 <%@ page import="com.studyfinder.service.StudyFinderPageService" %>
+<%@ page import="com.studyfinder.service.AdminDashboardService" %>
 <%@ page import="com.studyfinder.util.AuthSession" %>
 <%!
     private String js(String value) {
@@ -13,6 +14,21 @@
         return value.replace("\\", "\\\\").replace("\"", "\\\"")
                 .replace("\r", "\\r").replace("\n", "\\n")
                 .replace("\u2028", "\\u2028").replace("\u2029", "\\u2029");
+    }
+
+    private String adminRows(List<Map<String, Object>> rows) {
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, Object> row = rows.get(i);
+            if (i > 0) json.append(',');
+            json.append("{id:").append(row.get("id"))
+                .append(",label:\"").append(js(String.valueOf(row.get("label")))).append("\"")
+                .append(",secondary:\"").append(js(String.valueOf(row.get("secondary")))).append("\"")
+                .append(",meta:\"").append(js(String.valueOf(row.get("meta")))).append("\"");
+            if (row.get("status") != null) json.append(",status:\"").append(js(String.valueOf(row.get("status")))).append("\"");
+            json.append('}');
+        }
+        return json.append(']').toString();
     }
 %>
 <%
@@ -28,6 +44,8 @@
     List<Map<String, Object>> verifications = List.of();
     int points = 0;
     String databaseError = null;
+    Map<String, Integer> adminCounts = Map.of();
+    List<Map<String, Object>> adminReports = List.of(), adminReviews = List.of(), adminUsers = List.of(), adminActivity = List.of(), adminRedemptions = List.of(), adminSpotClicks = List.of();
     try {
         StudyFinderPageService service = new StudyFinderPageService();
         studySpots = service.getStudySpots();
@@ -36,6 +54,16 @@
         activityLogs = service.getActivityLogs();
         verifications = service.getVerifications();
         if (currentUser.id() != null) points = service.getStudentPoints(currentUser.id());
+        if (currentUser.isAdmin()) {
+            AdminDashboardService admin = new AdminDashboardService();
+            adminCounts = admin.getCounts();
+            adminReports = admin.getReports();
+            adminReviews = admin.getReviews();
+            adminUsers = admin.getUsers();
+            adminActivity = admin.getActivityLogs();
+            adminRedemptions = admin.getRecentRedemptions();
+            try { adminSpotClicks = admin.getSpotClicks(); } catch (SQLException ignored) { /* optional migration */ }
+        }
     } catch (SQLException exception) {
         databaseError = "The page could not load all database data.";
         log("Unable to load StudyFinder page data", exception);
@@ -43,7 +71,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>StudyFinder Study Spots</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-Br5emr8F.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-CtfqJuxQ.css"></head>
 <body>
 <% if (databaseError != null) { %><p style="padding:1rem;color:#9b1c1c;"><%= databaseError %></p><% } %>
 <div id="root"></div>
@@ -53,6 +81,16 @@ window.currentUser = { id: <%= currentUser.id() == null ? "null" : currentUser.i
 window.studentPoints = <%= points %>;
 window.flashMessage = "<%= js(request.getParameter("message")) %>";
 window.flashError = "<%= js(request.getParameter("error")) %>";
+window.adminMessage = "<%= js(request.getParameter("adminMessage")) %>";
+window.adminError = "<%= js(request.getParameter("adminError")) %>";
+<% if (currentUser.isAdmin()) { %>
+window.adminDashboard = {
+  counts: { activeSpots:<%= adminCounts.getOrDefault("activeSpots", 0) %>, reports:<%= adminCounts.getOrDefault("reports", 0) %>, reviews:<%= adminCounts.getOrDefault("reviews", 0) %>, users:<%= adminCounts.getOrDefault("users", 0) %>, redemptions:<%= adminCounts.getOrDefault("redemptions", 0) %> },
+  spotClicks: [<% for (int i=0;i<adminSpotClicks.size();i++) { Map<String,Object> row=adminSpotClicks.get(i); %>{spot:"<%= js(String.valueOf(row.get("spot"))) %>",clicks:<%= row.get("clicks") %>}<%= i+1<adminSpotClicks.size()?",":"" %><% } %>],
+  reports: <%= adminRows(adminReports) %>, reviews: <%= adminRows(adminReviews) %>, activityLogs: <%= adminRows(adminActivity) %>, recentRedemptions: <%= adminRows(adminRedemptions) %>, users: <%= adminRows(adminUsers) %>,
+  studySpots: [<% for (int i=0;i<studySpots.size();i++) { StudySpot spot=studySpots.get(i); %>{id:<%=spot.getSpotId()%>,name:"<%=js(spot.getName())%>",location:"<%=js(spot.getLocation())%>",latitude:<%=spot.getLatitude()%>,longitude:<%=spot.getLongitude()%>,accessType:"<%=js(spot.getAccessType())%>",noise:"<%=js(spot.getNoise())%>",noiseLevel:"low",crowded:"<%=js(spot.getCrowdedness())%>",crowdLevel:"low",outlets:"<%=js(spot.getOutlets())%>",updated:"<%=js(spot.getUpdated())%>",rating:0,img:"",tags:[],open:<%=spot.getOpenNow()==null?"null":spot.getOpenNow()%>,building:"<%=js(spot.getBuilding())%>",capacity:<%=spot.getCapacity()%>}<%=i+1<studySpots.size()?",":""%><% } %>]
+};
+<% } %>
 window.studySpots = [
 <% for (int i = 0; i < studySpots.size(); i++) {
     StudySpot spot = studySpots.get(i);
@@ -84,5 +122,5 @@ window.reviews = [<% for (int i=0;i<reviews.size();i++) { Map<String,Object> row
 window.activityLogs = [<% for (int i=0;i<activityLogs.size();i++) { Map<String,Object> row=activityLogs.get(i); %>{userId:<%= row.get("user_id") %>,actionType:"<%= js((String) row.get("action_type")) %>",targetType:"<%= js((String) row.get("target_type")) %>",targetId:<%= row.get("target_id") == null ? "null" : row.get("target_id") %>}<%= i+1<activityLogs.size()?",":"" %><% } %>];
 window.verifications = [<% for (int i=0;i<verifications.size();i++) { Map<String,Object> row=verifications.get(i); %>{reportId:<%= row.get("report_id") %>,userId:<%= row.get("user_id") %>,result:"<%= js((String) row.get("result")) %>"}<%= i+1<verifications.size()?",":"" %><% } %>];
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-D4QAK4Cv.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-DxaClr9S.js"></script>
 </body></html>
