@@ -21,7 +21,8 @@ public class SpotDetailDAO {
     private static final int DUPLICATE_KEY = 1062;
 
     /**
-     * Loads one active spot with its building, amenities, last 5 reports and visible reviews.
+     * Loads one active spot with its building, amenities, last 5 reports and
+     * visible reviews.
      * Returns null when the spot does not exist or is inactive.
      */
     public SpotDetail getSpotDetail(int spotId) throws SQLException {
@@ -33,15 +34,18 @@ public class SpotDetailDAO {
                 + "LEFT JOIN buildings b ON b.building_id = s.building_id "
                 + "WHERE s.spot_id = ? AND s.is_active = 1";
 
-        // Active amenities this spot provides, with the spot-specific note from provides.
+        // Active amenities this spot provides, with the spot-specific note from
+        // provides.
         String amenitySql = "SELECT a.amenity_name, a.description, p.notes "
                 + "FROM provides p "
                 + "JOIN amenities a ON a.amenity_id = p.amenity_id "
                 + "WHERE p.spot_id = ? AND a.is_active = 1 "
                 + "ORDER BY a.amenity_name";
 
-        // The 5 newest reports for this spot, each with how many students confirmed/disputed it.
-        // TIMESTAMPDIFF uses the database clock so "X min ago" matches when the row was written.
+        // The 5 newest reports for this spot, each with how many students
+        // confirmed/disputed it.
+        // TIMESTAMPDIFF uses the database clock so "X min ago" matches when the row was
+        // written.
         String reportSql = "SELECT r.report_id, r.user_id, "
                 + "SUBSTRING_INDEX(u.full_name, ' ', 1) AS first_name, "
                 + "r.noise_level, r.crowdedness, r.outlets_available, r.smell_level, r.wifi_quality, r.notes, "
@@ -58,22 +62,24 @@ public class SpotDetailDAO {
                 + "ORDER BY r.created_at DESC, r.report_id DESC "
                 + "LIMIT 5";
 
-        // Visible reviews for this spot with the reviewer's first name (read-only here).
-        String reviewSql =
-        "SELECT SUBSTRING_INDEX(u.full_name, ' ', 1) AS first_name, "
-        + "rv.rating, rv.review_text, "
-        + "DATE_FORMAT(rv.created_at, '%Y-%m-%d') AS created_at "
-        + "FROM reviews rv "
-        + "JOIN users u ON u.user_id = rv.user_id "
-        + "WHERE rv.spot_id = ? AND rv.is_visible = 1 "
-        + "ORDER BY rv.created_at DESC";
+        // Visible reviews for this spot with the reviewer's first name (read-only
+        // here).
+        String reviewSql = "SELECT SUBSTRING_INDEX(u.full_name, ' ', 1) AS first_name, "
+                + "rv.rating, rv.review_text, "
+                + "DATE_FORMAT(rv.created_at, '%Y-%m-%d') AS created_at "
+                + "FROM reviews rv "
+                + "JOIN users u ON u.user_id = rv.user_id "
+                + "WHERE rv.spot_id = ? AND rv.is_visible = 1 "
+                + "ORDER BY rv.created_at DESC";
 
         try (Connection con = DatabaseConnection.getConnection()) {
             SpotDetail spot;
+            boolean closeEnough = false;
             try (PreparedStatement stmt = con.prepareStatement(spotSql)) {
                 stmt.setInt(1, spotId);
                 try (ResultSet rs = stmt.executeQuery()) {
-                    if (!rs.next()) return null;
+                    if (!rs.next())
+                        return null;
                     spot = new SpotDetail();
                     spot.setSpotId(rs.getInt("spot_id"));
                     spot.setBuildingId(rs.getInt("building_id"));
@@ -128,11 +134,11 @@ public class SpotDetailDAO {
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         spot.getReviews().add(new SpotDetail.Review(
-                            rs.getString("first_name"),
-                            rs.getInt("rating"),
-                            rs.getString("review_text"),
-                            rs.getString("created_at")
-                    ));}
+                                rs.getString("first_name"),
+                                rs.getInt("rating"),
+                                rs.getString("review_text"),
+                                rs.getString("created_at")));
+                    }
                 }
             }
 
@@ -141,7 +147,8 @@ public class SpotDetailDAO {
     }
 
     /**
-     * Opening/closing times for a building on the given days (e.g. today and yesterday),
+     * Opening/closing times for a building on the given days (e.g. today and
+     * yesterday),
      * keyed by day name. Each value is {opening_time, closing_time}.
      */
     public Map<String, LocalTime[]> getBuildingHours(int buildingId, List<String> days) throws SQLException {
@@ -152,7 +159,7 @@ public class SpotDetailDAO {
                 + "WHERE building_id = ? AND day_of_week IN (?, ?)";
         Map<String, LocalTime[]> hours = new LinkedHashMap<>();
         try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement stmt = con.prepareStatement(sql)) {
+                PreparedStatement stmt = con.prepareStatement(sql)) {
             stmt.setInt(1, buildingId);
             stmt.setString(2, days.get(0));
             stmt.setString(3, days.get(1));
@@ -167,12 +174,16 @@ public class SpotDetailDAO {
         return hours;
     }
 
-    /** The current student's rating ("confirmed"/"disputed") of a report, or null if they haven't rated it. */
+    /**
+     * The current student's rating ("confirmed"/"disputed") of a report, or null if
+     * they haven't rated it.
+     */
     public String getUserRating(int reportId, int userId) throws SQLException {
-        // Has this student already verified this report? (verifies has one row per student per report.)
+        // Has this student already verified this report? (verifies has one row per
+        // student per report.)
         String sql = "SELECT result FROM verifies WHERE report_id = ? AND user_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement stmt = con.prepareStatement(sql)) {
+                PreparedStatement stmt = con.prepareStatement(sql)) {
             stmt.setInt(1, reportId);
             stmt.setInt(2, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -183,20 +194,23 @@ public class SpotDetailDAO {
 
     /**
      * Saves a new conditions report for a spot and logs it, in one transaction.
-     * outlets is 1 (available) or 0 (none). Values are already validated by SpotService.
+     * outlets is 1 (available) or 0 (none). Values are already validated by
+     * SpotService.
      *
      * @return null on success, otherwise a message to show the student
      */
     public String submitReport(int userId, int spotId, String noise, String crowdedness, int outlets,
-                               String smell, String wifi, String notes) throws SQLException {
+            String smell, String wifi, String notes) throws SQLException {
         // The spot must exist and be active.
         String spotSql = "SELECT spot_id FROM study_spots WHERE spot_id = ? AND is_active = 1";
         // Only students can report (reports.user_id references students).
         String studentSql = "SELECT user_id FROM students WHERE user_id = ?";
-        // Has this student already reported this spot in the last 10 minutes? Stops spam reports.
+        // Has this student already reported this spot in the last 10 minutes? Stops
+        // spam reports.
         String recentSql = "SELECT COUNT(*) AS recent FROM reports "
                 + "WHERE user_id = ? AND spot_id = ? AND created_at > NOW() - INTERVAL 10 MINUTE";
-        // Save the report. It becomes the spot's "current conditions" because it is the newest.
+        // Save the report. It becomes the spot's "current conditions" because it is the
+        // newest.
         String insertReport = "INSERT INTO reports "
                 + "(user_id, spot_id, noise_level, crowdedness, outlets_available, smell_level, "
                 + "wifi_quality, notes, created_at) "
@@ -209,10 +223,10 @@ public class SpotDetailDAO {
         try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             try (PreparedStatement spotStmt = con.prepareStatement(spotSql);
-                 PreparedStatement studentStmt = con.prepareStatement(studentSql);
-                 PreparedStatement recentStmt = con.prepareStatement(recentSql);
-                 PreparedStatement reportStmt = con.prepareStatement(insertReport, Statement.RETURN_GENERATED_KEYS);
-                 PreparedStatement logStmt = con.prepareStatement(insertLog)) {
+                    PreparedStatement studentStmt = con.prepareStatement(studentSql);
+                    PreparedStatement recentStmt = con.prepareStatement(recentSql);
+                    PreparedStatement reportStmt = con.prepareStatement(insertReport, Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement logStmt = con.prepareStatement(insertLog)) {
 
                 spotStmt.setInt(1, spotId);
                 try (ResultSet rs = spotStmt.executeQuery()) {
@@ -251,7 +265,8 @@ public class SpotDetailDAO {
 
                 int reportId;
                 try (ResultSet keys = reportStmt.getGeneratedKeys()) {
-                    if (!keys.next()) throw new SQLException("Report id was not returned.");
+                    if (!keys.next())
+                        throw new SQLException("Report id was not returned.");
                     reportId = keys.getInt(1);
                 }
 
@@ -272,14 +287,17 @@ public class SpotDetailDAO {
     }
 
     /**
-     * Records a student's accurate/inaccurate rating of a spot's latest report, all in one transaction:
-     * inserts into verifies, gives the rater +2 points, moves the author's trust score +1/-1,
+     * Records a student's accurate/inaccurate rating of a spot's latest report, all
+     * in one transaction:
+     * inserts into verifies, gives the rater +2 points, moves the author's trust
+     * score +1/-1,
      * and writes an activity log row.
      *
      * @return null on success, otherwise a message to show the student
      */
     public String rateLatestReport(int userId, int spotId, int reportId, String result) throws SQLException {
-        // The newest report for the spot. Locked so the check and the insert see the same row.
+        // The newest report for the spot. Locked so the check and the insert see the
+        // same row.
         String latestSql = "SELECT report_id, user_id FROM reports "
                 + "WHERE spot_id = ? "
                 + "ORDER BY created_at DESC, report_id DESC LIMIT 1 FOR UPDATE";
@@ -297,16 +315,16 @@ public class SpotDetailDAO {
         String insertLog = "INSERT INTO activity_logs "
                 + "(user_id, action_type, target_type, target_id, details, created_at) "
                 + "VALUES (?, 'verify_report', 'report', ?, ?, NOW())";
-        
 
         try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             try (PreparedStatement latestStmt = con.prepareStatement(latestSql);
-                 PreparedStatement studentStmt = con.prepareStatement(studentSql);
-                 PreparedStatement verifyStmt = con.prepareStatement(insertVerify);
-                 PreparedStatement pointsStmt = con.prepareStatement(addPoints);
-                 PreparedStatement trustStmt = con.prepareStatement("confirmed".equals(result) ? trustUp : trustDown);
-                 PreparedStatement logStmt = con.prepareStatement(insertLog)) {
+                    PreparedStatement studentStmt = con.prepareStatement(studentSql);
+                    PreparedStatement verifyStmt = con.prepareStatement(insertVerify);
+                    PreparedStatement pointsStmt = con.prepareStatement(addPoints);
+                    PreparedStatement trustStmt = con
+                            .prepareStatement("confirmed".equals(result) ? trustUp : trustDown);
+                    PreparedStatement logStmt = con.prepareStatement(insertLog)) {
 
                 int authorId;
                 latestStmt.setInt(1, spotId);
@@ -337,7 +355,8 @@ public class SpotDetailDAO {
                 try {
                     verifyStmt.executeUpdate();
                 } catch (SQLIntegrityConstraintViolationException exception) {
-                    if (exception.getErrorCode() != DUPLICATE_KEY) throw exception;
+                    if (exception.getErrorCode() != DUPLICATE_KEY)
+                        throw exception;
                     con.rollback();
                     return "You already rated this report";
                 }
@@ -364,7 +383,9 @@ public class SpotDetailDAO {
             }
         }
     }
-    public String submitReview(int userId, int spotId, int rating, String reviewText) throws SQLException {
+
+    public String submitReview(int userId, int spotId, int rating, String reviewText, double latitude, double longitude)
+            throws SQLException {
         if (rating < 1 || rating > 5) {
             return "Rating must be between 1 and 5.";
         }
@@ -375,31 +396,26 @@ public class SpotDetailDAO {
         if (text.length() > 255) {
             return "Review must be 255 characters or less.";
         }
-        
-        // check whether the user is a student. 
+
+        // check whether the user is a student.
         // ? is replaced by the logged in user's id
-        String studentSql =
-                "SELECT user_id FROM students WHERE user_id = ?";
+        String studentSql = "SELECT user_id FROM students WHERE user_id = ?";
         // check whether the study spot is active
         // spot_id = ? finds the requested spot
-        String spotSql =
-                "SELECT spot_id FROM study_spots "
+        String spotSql = "SELECT spot_id, latitude, longitude FROM study_spots "
                 + "WHERE spot_id = ? AND is_active = 1";
 
-        // check whether the same user already reviewed the same spot 
-        String duplicateSql =
-                "SELECT review_id FROM reviews "
+        // check whether the same user already reviewed the same spot
+        String duplicateSql = "SELECT review_id FROM reviews "
                 + "WHERE user_id = ? AND spot_id = ?";
-        // adds a new row to reviews with the current date and time 
-        String insertSql =
-                "INSERT INTO reviews "
+        // adds a new row to reviews with the current date and time
+        String insertSql = "INSERT INTO reviews "
                 + "(user_id, spot_id, rating, review_text, created_at, is_visible) "
                 + "VALUES (?, ?, ?, ?, NOW(), 1)";
-        // adds 5 points to the student who reviewed        
-        String addPointsSql =
-            "UPDATE students "
-            + "SET points = points + 5 "
-            + "WHERE user_id = ?";
+        // adds 5 points to the student who reviewed
+        String addPointsSql = "UPDATE students "
+                + "SET points = points + 5 "
+                + "WHERE user_id = ?";
 
         try (Connection con = DatabaseConnection.getConnection()) {
             try (PreparedStatement stmt = con.prepareStatement(studentSql)) {
@@ -418,6 +434,15 @@ public class SpotDetailDAO {
                     if (!rs.next()) {
                         return "Study spot not found.";
                     }
+                    double spotLatitude = rs.getDouble("latitude");
+                    double spotLongitude = rs.getDouble("longitude");
+
+                    double distance = calculateDistance(
+                            latitude,
+                            longitude,
+                            spotLatitude,
+                            spotLongitude);
+                    closeEnough = distance <= 100; // 0.1 km = 100 meters
                 }
             }
             try (PreparedStatement stmt = con.prepareStatement(duplicateSql)) {
@@ -437,14 +462,37 @@ public class SpotDetailDAO {
                 stmt.setString(4, text);
                 stmt.executeUpdate();
             }
-            try (PreparedStatement pointsStmt =
-                con.prepareStatement(addPointsSql)) {
-   
-                pointsStmt.setInt(1, userId);
-                pointsStmt.executeUpdate();
+            if (closeEnough) {
+                try (PreparedStatement pointsStmt = con.prepareStatement(addPointsSql)) {
+
+                    pointsStmt.setInt(1, userId);
+                    pointsStmt.executeUpdate();
+                }
             }
+
         }
 
         return null;
+    }
+
+    private double calculateDistance(
+            double lat1,
+            double lon1,
+            double lat2,
+            double lon2) {
+        double earthRadius = 6371000; // meters
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1))
+                        * Math.cos(Math.toRadians(lat2))
+                        * Math.sin(lonDistance / 2)
+                        * Math.sin(lonDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return earthRadius * c;
     }
 }
