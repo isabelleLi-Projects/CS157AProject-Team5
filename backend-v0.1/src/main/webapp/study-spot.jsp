@@ -68,7 +68,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><%= spot.getName().replace("<", "&lt;") %> | StudyFinder</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-B05CoEj-.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-CtfqJuxQ.css"></head>
 <body>
 <div id="root"></div>
 <script>
@@ -92,27 +92,28 @@ window.spotDetail = {
   amenities: [<% for (int i = 0; i < spot.getAmenities().size(); i++) { SpotDetail.Amenity a = spot.getAmenities().get(i); %>
     { name: "<%= js(a.name()) %>", description: "<%= js(a.description()) %>", notes: "<%= js(a.notes()) %>" }<%= i + 1 < spot.getAmenities().size() ? "," : "" %><% } %>
   ],
-  reports: [<% for (int i = 0; i < reports.size(); i++) { SpotDetail.Report r = reports.get(i); %>
-    { reportId: <%= r.reportId() %>, authorName: "<%= js(r.authorFirstName()) %>", noise: "<%= js(r.noise()) %>", crowdedness: "<%= js(r.crowdedness()) %>", outlets: <%= r.outlets() == null ? "null" : r.outlets() %>, smell: "<%= js(r.smell()) %>", wifi: "<%= js(r.wifi()) %>", notes: "<%= js(r.notes()) %>", createdAt: "<%= js(r.createdAt()) %>", minutesAgo: <%= r.minutesAgo() %>, confirmed: <%= r.confirmed() %>, disputed: <%= r.disputed() %> }<%= i + 1 < reports.size() ? "," : "" %><% } %>
+                                                reports: [<% for (int i = 0; i < reports.size(); i++) {
+                                                    SpotDetail.Report r = reports.get(i); %>
+                                                        { reportId: <%= r.reportId() %>, authorName: "<%= js(r.authorFirstName()) %>", noise: "<%= js(r.noise()) %>", crowdedness: "<%= js(r.crowdedness()) %>", outlets: <%= r.outlets() == null ? "null" : r.outlets() %>, smell: "<%= js(r.smell()) %>", wifi: "<%= js(r.wifi()) %>", notes: "<%= js(r.notes()) %>", createdAt: "<%= js(r.createdAt()) %>", minutesAgo: <%= r.minutesAgo() %>, confirmed: <%= r.confirmed() %>, disputed: <%= r.disputed() %> } <%= i + 1 < reports.size() ? "," : "" %><% } %>
   ],
-  reviews: [
+                                                reviews: [
         <%
             for (int i = 0; i < spot.getReviews().size(); i++) {
-                SpotDetail.Review rv = spot.getReviews().get(i);
+                                                    SpotDetail.Review rv = spot.getReviews().get(i);
         %>
-        {
-            firstName: "<%= js(rv.firstName()) %>",
-            rating: <%= rv.rating() %>,
-            text: "<%= js(rv.text()) %>",
-            createdAt: "<%= js(rv.createdAt()) %>"
-        }<%= i + 1 < spot.getReviews().size() ? "," : "" %>
+                                                    {
+                                                        firstName: "<%= js(rv.firstName()) %>",
+                                                        rating: <%= rv.rating() %>,
+                                                        text: "<%= js(rv.text()) %>",
+                                                        createdAt: "<%= js(rv.createdAt()) %>"
+                                                    } <%= i + 1 < spot.getReviews().size() ? "," : "" %>
         <%
         }
         %>
 ],
-  currentUserRating: <%= jsOrNull(spot.getCurrentUserRating()) %>,
-  isOwnLatestReport: <%= latest != null && currentUser.id() != null && latest.authorId() == currentUser.id() %>
+                                                currentUserRating: <%= jsOrNull(spot.getCurrentUserRating()) %>,
+                                                    isOwnLatestReport: <%= latest != null && currentUser.id() != null && latest.authorId() == currentUser.id() %>
 };
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-DNUZbf2J.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-DxaClr9S.js"></script>
 </body></html>

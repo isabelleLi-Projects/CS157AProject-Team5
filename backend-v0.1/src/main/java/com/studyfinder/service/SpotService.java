@@ -27,12 +27,14 @@ public class SpotService {
     private final SpotDetailDAO spotDetailDAO = new SpotDetailDAO();
 
     /**
-     * Loads everything the page shows. userId is the logged-in student or null for guests/admins.
+     * Loads everything the page shows. userId is the logged-in student or null for
+     * guests/admins.
      * Returns null when the spot does not exist or is inactive.
      */
     public SpotDetail getSpotDetail(int spotId, Integer userId) throws SQLException {
         SpotDetail spot = spotDetailDAO.getSpotDetail(spotId);
-        if (spot == null) return null;
+        if (spot == null)
+            return null;
 
         addTodaysHours(spot, ZonedDateTime.now(CAMPUS_ZONE));
 
@@ -60,7 +62,7 @@ public class SpotService {
 
     /** @return null on success, otherwise a message to show the student */
     public String submitReport(int userId, int spotId, String noise, String crowdedness, String outlets,
-                               String smell, String wifi, String notes) throws SQLException {
+            String smell, String wifi, String notes) throws SQLException {
         if (!NOISE.contains(noise) || !CROWDEDNESS.contains(crowdedness) || !SMELL.contains(smell)
                 || !WIFI.contains(wifi) || !("1".equals(outlets) || "0".equals(outlets))) {
             return "Fill in every condition.";
@@ -79,9 +81,11 @@ public class SpotService {
         String yesterday = todayDay.minus(1).getDisplayName(TextStyle.FULL, Locale.US);
         spot.setToday(today);
 
-        Map<String, LocalTime[]> hours = spotDetailDAO.getBuildingHours(spot.getBuildingId(), List.of(today, yesterday));
+        Map<String, LocalTime[]> hours = spotDetailDAO.getBuildingHours(spot.getBuildingId(),
+                List.of(today, yesterday));
         LocalTime[] todayHours = hours.get(today);
-        if (todayHours == null) return; // page shows "Hours not available"
+        if (todayHours == null)
+            return; // page shows "Hours not available"
 
         LocalTime open = todayHours[0];
         LocalTime close = todayHours[1];
@@ -95,7 +99,7 @@ public class SpotService {
             openNow = !time.isBefore(open) && time.isBefore(close);
         } else {
             // Overnight hours, such as 7:00 AM–1:00 AM
-            openNow = !time.isBefore(open)|| time.isBefore(close);
+            openNow = !time.isBefore(open) || time.isBefore(close);
         }
         // Check whether yesterday's hours continue past midnight.
         LocalTime[] yesterdayHours = hours.get(yesterday);
@@ -104,12 +108,14 @@ public class SpotService {
         }
         spot.setOpenNow(openNow);
     }
+
     public String submitReview(
-        int userId,
-        int spotId,
-        int rating,
-        String reviewText
-        ) throws SQLException {
-            return spotDetailDAO.submitReview(userId, spotId, rating, reviewText);
-        }
+            int userId,
+            int spotId,
+            int rating,
+            String reviewText,
+            double latitude,
+            double longitude) throws SQLException {
+        return spotDetailDAO.submitReview(userId, spotId, rating, reviewText, latitude, longitude);
+    }
 }
