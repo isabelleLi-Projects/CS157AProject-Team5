@@ -1,9 +1,13 @@
+import { useState } from "react"
+
 export default function RewardForm() {
+  const [rewardFileName, setRewardFileName] = useState('')
     return (
       <form
         className="grid gap-4 sm:grid-cols-2"
         method="post"
-        action={`${window.studyFinderContext ?? ''}/admin-action.jsp`}
+        action={`${window.studyFinderContext ?? ''}/admin-action`}
+        encType="multipart/form-data"
       >
         <input type="hidden" name="action" value="addReward" />
         <label className="text-sm font-medium text-main">
@@ -32,12 +36,22 @@ export default function RewardForm() {
           />
         </label>
   
-        <label className="text-sm font-medium text-main">
-          Reward image
+        <label
+          htmlFor="rewardPhoto"
+          className="mt-1 flex cursor-pointer justify-between rounded-xl border-2 border-dashed border-[#2d5a3d] bg-[#edf5ee] px-4 py-3 text-sm text-[#2d5a3d]"
+        >
+          <span>{rewardFileName || 'Choose file'}</span>
+
           <input
+            id="rewardPhoto"
             type="file"
-            accept="image/*"
-            className="mt-1 block text-sm"
+            name="rewardPhoto"
+            accept=".jpg,.jpeg,.png,.gif"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              setRewardFileName(file?.name ?? '')
+            }}
           />
         </label>
   

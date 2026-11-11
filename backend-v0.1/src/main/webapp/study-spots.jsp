@@ -38,10 +38,12 @@
         return;
     }
     List<StudySpot> studySpots = List.of();
+    List<Map<String, Object>> adminBuildings = List.of();
     List<Reward> rewards = List.of();
     List<Map<String, Object>> reviews = List.of();
     List<Map<String, Object>> activityLogs = List.of();
     List<Map<String, Object>> verifications = List.of();
+    
     int points = 0;
     String databaseError = null;
     Map<String, Integer> adminCounts = Map.of();
@@ -56,6 +58,7 @@
         if (currentUser.id() != null) points = service.getStudentPoints(currentUser.id());
         if (currentUser.isAdmin()) {
             AdminDashboardService admin = new AdminDashboardService();
+            adminBuildings = admin.getBuildings();
             adminCounts = admin.getCounts();
             adminReports = admin.getReports();
             adminReviews = admin.getReviews();
@@ -71,7 +74,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>StudyFinder Study Spots</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-CtfqJuxQ.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-B05CoEj-.css"></head>
 <body>
 <% if (databaseError != null) { %><p style="padding:1rem;color:#9b1c1c;"><%= databaseError %></p><% } %>
 <div id="root"></div>
@@ -83,6 +86,7 @@ window.flashMessage = "<%= js(request.getParameter("message")) %>";
 window.flashError = "<%= js(request.getParameter("error")) %>";
 window.adminMessage = "<%= js(request.getParameter("adminMessage")) %>";
 window.adminError = "<%= js(request.getParameter("adminError")) %>";
+// admin 
 <% if (currentUser.isAdmin()) { %>
 window.adminDashboard = {
   counts: { activeSpots:<%= adminCounts.getOrDefault("activeSpots", 0) %>, reports:<%= adminCounts.getOrDefault("reports", 0) %>, reviews:<%= adminCounts.getOrDefault("reviews", 0) %>, users:<%= adminCounts.getOrDefault("users", 0) %>, redemptions:<%= adminCounts.getOrDefault("redemptions", 0) %> },
@@ -90,7 +94,18 @@ window.adminDashboard = {
   reports: <%= adminRows(adminReports) %>, reviews: <%= adminRows(adminReviews) %>, activityLogs: <%= adminRows(adminActivity) %>, recentRedemptions: <%= adminRows(adminRedemptions) %>, users: <%= adminRows(adminUsers) %>,
   studySpots: [<% for (int i=0;i<studySpots.size();i++) { StudySpot spot=studySpots.get(i); %>{id:<%=spot.getSpotId()%>,name:"<%=js(spot.getName())%>",location:"<%=js(spot.getLocation())%>",latitude:<%=spot.getLatitude()%>,longitude:<%=spot.getLongitude()%>,accessType:"<%=js(spot.getAccessType())%>",noise:"<%=js(spot.getNoise())%>",noiseLevel:"low",crowded:"<%=js(spot.getCrowdedness())%>",crowdLevel:"low",outlets:"<%=js(spot.getOutlets())%>",updated:"<%=js(spot.getUpdated())%>",rating:0,img:"",tags:[],open:<%=spot.getOpenNow()==null?"null":spot.getOpenNow()%>,building:"<%=js(spot.getBuilding())%>",capacity:<%=spot.getCapacity()%>}<%=i+1<studySpots.size()?",":""%><% } %>]
 };
-<% } %>
+// provides a dicionary like this 1:BBC, 2:KING
+window.adminBuildings = [
+<%
+for (int i = 0; i < adminBuildings.size(); i++) {
+    Map<String, Object> building = adminBuildings.get(i);
+%>
+{
+    id: <%= building.get("id") %>,
+    acronym: "<%= js(String.valueOf(building.get("acronym"))) %>",
+    name: "<%= js(String.valueOf(building.get("name"))) %>"
+}<%= i + 1 < adminBuildings.size() ? "," : "" %>
+<%}%>]<% } %>;
 window.studySpots = [
 <% for (int i = 0; i < studySpots.size(); i++) {
     StudySpot spot = studySpots.get(i);
@@ -115,12 +130,27 @@ window.studySpots = [
   img:"<%= js(imageUrl) %>", noise:"<%= js(spot.getNoise()) %>", crowdedness:"<%= js(spot.getCrowdedness()) %>", outlets:"<%= js(spot.getOutlets()) %>", updated:"<%= js(spot.getUpdated()) %>", amenities:[<% for (int j=0;j<spot.getAmenities().size();j++) { %>"<%= js(spot.getAmenities().get(j)) %>"<%= j+1<spot.getAmenities().size()?",":"" %><% } %>] }<%= i+1<studySpots.size()?",":"" %>
 <% } %>];
 window.rewards = [
-<% for (int i=0;i<rewards.size();i++) { Reward reward=rewards.get(i); %>
-{ id:<%= reward.getRewardId() %>, label:"<%= js(reward.getName()) %>", description:"<%= js(reward.getDescription()) %>", pts:<%= reward.getPointCost() %>, stock:<%= reward.getStockQuantity() %> }<%= i+1<rewards.size()?",":"" %>
-<% } %>];
+<%
+for (int i = 0; i < rewards.size(); i++) {
+    Reward reward = rewards.get(i);
+    String rewardImage = "";
+    if (reward.getPhotoPath() != null && !reward.getPhotoPath().isBlank()) {
+        rewardImage =request.getContextPath() +  "/assets/rewards/" + reward.getPhotoPath();
+    }
+%>
+{
+    id: <%= reward.getRewardId() %>,
+    label: "<%= js(reward.getName()) %>",
+    description: "<%= js(reward.getDescription()) %>",
+    pts: <%= reward.getPointCost() %>,
+    stock: <%= reward.getStockQuantity() %>,
+    img: "<%= js(rewardImage) %>"
+}<%= i + 1 < rewards.size() ? "," : "" %>
+<%}%>];
+
 window.reviews = [<% for (int i=0;i<reviews.size();i++) { Map<String,Object> row=reviews.get(i); %>{userId:<%= row.get("user_id") %>,spotId:<%= row.get("spot_id") %>,reviewText:"<%= js((String) row.get("review_text")) %>",visible:<%= row.get("is_visible") %>}<%= i+1<reviews.size()?",":"" %><% } %>];
 window.activityLogs = [<% for (int i=0;i<activityLogs.size();i++) { Map<String,Object> row=activityLogs.get(i); %>{userId:<%= row.get("user_id") %>,actionType:"<%= js((String) row.get("action_type")) %>",targetType:"<%= js((String) row.get("target_type")) %>",targetId:<%= row.get("target_id") == null ? "null" : row.get("target_id") %>}<%= i+1<activityLogs.size()?",":"" %><% } %>];
 window.verifications = [<% for (int i=0;i<verifications.size();i++) { Map<String,Object> row=verifications.get(i); %>{reportId:<%= row.get("report_id") %>,userId:<%= row.get("user_id") %>,result:"<%= js((String) row.get("result")) %>"}<%= i+1<verifications.size()?",":"" %><% } %>];
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-DxaClr9S.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-DNUZbf2J.js"></script>
 </body></html>

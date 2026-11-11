@@ -26,10 +26,16 @@ type AdminDashboardData = {
   studySpots?: StudySpot[]
   counts?: { reports?: number; reviews?: number; users?: number; activeSpots?: number; redemptions?: number }
 }
+type AdminBuilding = {
+  id: number
+  acronym: string // doesn't dropdown display name 
+  name: string
+}
 
 declare global {
   interface Window {
     adminDashboard?: AdminDashboardData
+    adminBuildings?: AdminBuilding[]
   }
 }
 

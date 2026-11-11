@@ -32,7 +32,7 @@ public class StudyFinderDAO {
 
     public List<Reward> getActiveRewards() throws SQLException {
         List<Reward> rewards = new ArrayList<>();
-        String sql = "SELECT reward_id, reward_name, description, points_required AS point_cost, stock_quantity "
+        String sql = "SELECT reward_id, reward_name, description, points_required AS point_cost, stock_quantity, photo_path "
                 + "FROM rewards WHERE is_active = 1 ORDER BY point_cost";
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement stmt = con.prepareStatement(sql);
@@ -44,6 +44,7 @@ public class StudyFinderDAO {
                 reward.setDescription(rs.getString("description"));
                 reward.setPointCost(rs.getInt("point_cost"));
                 reward.setStockQuantity(rs.getInt("stock_quantity"));
+                reward.setPhotoPath(rs.getString("photo_path"));
                 rewards.add(reward);
             }
         }

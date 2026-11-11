@@ -29,7 +29,7 @@ export default function SpotForm() {
       <form
         className="grid gap-4 sm:grid-cols-2"
         method="post"
-        action={`${window.studyFinderContext ?? ''}/admin-action.jsp`}
+        action={`${window.studyFinderContext ?? ''}/admin-action`}
         encType="multipart/form-data"
       >
         <input type="hidden" name="action" value="addSpot" />
@@ -40,7 +40,22 @@ export default function SpotForm() {
   
         <label>
           Building
-          <input name="building" required className="search-input mt-1 p-3" />
+          <select
+            name="buildingId"
+            required
+            defaultValue=""
+            className="search-input mt-1 p-3"
+          >
+            <option value="" disabled>
+              Select a building
+            </option>
+
+            {(window.adminBuildings ?? []).map((building) => (
+              <option key={building.id} value={building.id}>
+                {building.name}
+              </option>
+            ))}
+          </select>
         </label>
   
         <label>
@@ -79,7 +94,8 @@ export default function SpotForm() {
 
             <input
               type="file"
-              accept="image/*"
+              name="photo"
+              accept=".jpg,.jpeg,.png,.gif"
               className="hidden"
               onChange={(event) => {
                 const file = event.target.files?.[0]

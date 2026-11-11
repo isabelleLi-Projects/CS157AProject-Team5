@@ -68,7 +68,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><%= spot.getName().replace("<", "&lt;") %> | StudyFinder</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-CtfqJuxQ.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-B05CoEj-.css"></head>
 <body>
 <div id="root"></div>
 <script>
@@ -114,5 +114,5 @@ window.spotDetail = {
   isOwnLatestReport: <%= latest != null && currentUser.id() != null && latest.authorId() == currentUser.id() %>
 };
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-DxaClr9S.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-DNUZbf2J.js"></script>
 </body></html>

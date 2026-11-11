@@ -6,6 +6,7 @@ public class Reward {
     private String description;
     private int pointCost;
     private int stockQuantity;
+    private String photoPath;
 
     public int getRewardId() { return rewardId; }
     public void setRewardId(int rewardId) { this.rewardId = rewardId; }
@@ -17,4 +18,6 @@ public class Reward {
     public void setPointCost(int pointCost) { this.pointCost = pointCost; }
     public int getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(int stockQuantity) { this.stockQuantity = stockQuantity; }
+    public String getPhotoPath() { return photoPath; }
+    public void setPhotoPath(String photoPath) { this.photoPath = photoPath; }
 }

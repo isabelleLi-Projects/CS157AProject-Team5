@@ -35,4 +35,5 @@ export interface Reward {
   pts: number
   description?: string
   stock?: number
+  img?: string
 }

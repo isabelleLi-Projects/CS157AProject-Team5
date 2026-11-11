@@ -1,16 +1,17 @@
 package com.studyfinder.dao;
 
-import com.studyfinder.database.DatabaseConnection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.studyfinder.database.DatabaseConnection;
 
 /** Read/write database operations used only by the administrator dashboard. */
 public class AdminDashboardDAO {
@@ -84,26 +85,78 @@ public class AdminDashboardDAO {
                 + "GROUP BY s.spot_id, s.spot_name ORDER BY clicks DESC LIMIT 10");
     }
 
-    public void addReward(String name, String description, int points, int stock) throws SQLException {
+    public void addReward(String name, String description, int points, int stock, String photoPath) throws SQLException {
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(
-                "INSERT INTO rewards (reward_name, description, points_required, stock_quantity, is_active) VALUES (?, ?, ?, ?, 1)")) {
-            stmt.setString(1, name); stmt.setString(2, description); stmt.setInt(3, points); stmt.setInt(4, stock); stmt.executeUpdate();
+                "INSERT INTO rewards (reward_name, description, points_required, stock_quantity, is_active, photo_path) VALUES (?, ?, ?, ?, 1, ?)")) {
+            stmt.setString(1, name); 
+            stmt.setString(2, description); 
+            stmt.setInt(3, points); 
+            stmt.setInt(4, stock); 
+            stmt.setString(5, photoPath); 
+            stmt.executeUpdate();
         }
     }
 
-    public void addStudySpot(String name, String building, String location, String accessType, int capacity, double latitude, double longitude) throws SQLException {
-        try (Connection con = DatabaseConnection.getConnection()) {
-            con.setAutoCommit(false);
-            try (PreparedStatement buildingStmt = con.prepareStatement(
-                    "INSERT INTO buildings (acronym, building_name) VALUES (?, ?) ON DUPLICATE KEY UPDATE building_id = LAST_INSERT_ID(building_id)", Statement.RETURN_GENERATED_KEYS);
-                 PreparedStatement spotStmt = con.prepareStatement(
-                    "INSERT INTO study_spots (building_id, spot_name, location_details, access_type, capacity, is_active, created_at, latitude, longitude) "
-                  + "VALUES (LAST_INSERT_ID(), ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-                buildingStmt.setString(1, building); buildingStmt.setString(2, building); buildingStmt.executeUpdate();
-                spotStmt.setString(1, name); spotStmt.setString(2, location); spotStmt.setString(3, accessType); spotStmt.setInt(4, capacity); spotStmt.setDouble(5, latitude); spotStmt.setDouble(6, longitude); spotStmt.executeUpdate();
-                con.commit();
-            } catch (SQLException e) { con.rollback(); throw e; }
-            finally { con.setAutoCommit(true); }
+    public void addStudySpot(String name, Integer buildingId, String location, String accessType, int capacity, double latitude, double longitude, String photoPath) throws SQLException {
+    String sql =
+        "INSERT INTO study_spots "
+        + "(building_id, spot_name, location_details, "
+        + "access_type, capacity, is_active, created_at, "
+        + "latitude, longitude, photo_path) "
+        + "VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, ?, ?, ?)";
+
+    try (Connection con = DatabaseConnection.getConnection();
+         PreparedStatement stmt = con.prepareStatement(sql)) {
+
+        con.setAutoCommit(false);
+
+        try {
+            // Stores NULL when the spot is outdoors
+            stmt.setObject(
+                1,
+                buildingId,
+                java.sql.Types.INTEGER
+            );
+
+            stmt.setString(2, name);
+            stmt.setString(3, location);
+            stmt.setString(4, accessType);
+            stmt.setInt(5, capacity);
+            stmt.setDouble(6, latitude);
+            stmt.setDouble(7, longitude);
+            stmt.setString(8, photoPath);
+
+            stmt.executeUpdate();
+
+            con.commit();
+
+        } catch (SQLException exception) {
+            con.rollback();
+            throw exception;
+
+        } finally {
+            con.setAutoCommit(true);
         }
+    }
+}
+    public List<Map<String, Object>> getBuildings() throws SQLException {
+        List<Map<String, Object>> buildings = new ArrayList<>();
+
+        String sql =
+            "SELECT building_id, acronym " +
+            "FROM buildings ORDER BY acronym";
+
+        try (Connection con = DatabaseConnection.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> building = new HashMap<>();
+                building.put("id", rs.getInt("building_id"));
+                building.put("name", rs.getString("acronym"));
+                buildings.add(building);
+            }
+        }
+        return buildings;
     }
 }

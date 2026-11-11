@@ -1,9 +1,10 @@
 package com.studyfinder.service;
-
-import com.studyfinder.dao.AdminDashboardDAO;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+
+import com.studyfinder.dao.AdminDashboardDAO;
+
 
 public class AdminDashboardService {
     private final AdminDashboardDAO dao = new AdminDashboardDAO();
@@ -14,6 +15,7 @@ public class AdminDashboardService {
     public List<Map<String, Object>> getActivityLogs() throws SQLException { return dao.getActivityLogs(); }
     public List<Map<String, Object>> getRecentRedemptions() throws SQLException { return dao.getRecentRedemptions(); }
     public List<Map<String, Object>> getSpotClicks() throws SQLException { return dao.getSpotClicks(); }
-    public void addReward(String name, String description, int points, int stock) throws SQLException { dao.addReward(name, description, points, stock); }
-    public void addStudySpot(String name, String building, String location, String accessType, int capacity, double latitude, double longitude) throws SQLException { dao.addStudySpot(name, building, location, accessType, capacity, latitude, longitude); }
+    public void addReward(String name, String description, int points, int stock, String photoPath) throws SQLException { dao.addReward(name, description, points, stock, photoPath); }
+    public void addStudySpot(String name, Integer buildingId, String location, String accessType, int capacity, double latitude, double longitude, String photoPath) throws SQLException { dao.addStudySpot(name, buildingId, location, accessType, capacity, latitude, longitude, photoPath); }
+    public List<Map<String, Object>> getBuildings() throws SQLException {return dao.getBuildings();}
 }
