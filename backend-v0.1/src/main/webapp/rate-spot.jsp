@@ -5,6 +5,8 @@
 <%@ page import="com.studyfinder.service.SpotService" %>
 <%@ page import="com.studyfinder.util.AuthSession" %>
 <%
+    
+    
     // Saves a student's "Accurate" / "Inaccurate" rating of a spot's latest report, then goes back to the spot page.
     if (!"POST".equalsIgnoreCase(request.getMethod())) { response.sendError(405); return; }
 
@@ -17,9 +19,14 @@
 
     int spotId;
     int reportId;
+    double latitude;
+    double longitude;
+
     try {
         spotId = Integer.parseInt(request.getParameter("spotId"));
         reportId = Integer.parseInt(request.getParameter("reportId"));
+        latitude = Double.parseDouble(request.getParameter("latitude"));
+        longitude = Double.parseDouble(request.getParameter("longitude"));
     } catch (NumberFormatException exception) {
         response.sendRedirect(context + "/study-spots.jsp?error=Spot+not+found");
         return;
@@ -32,8 +39,16 @@
         return;
     }
 
+    
     try {
-        String error = new SpotService().rateLatestReport(current.id(), spotId, reportId, request.getParameter("result"));
+        String error = new SpotService().rateLatestReport(
+            current.id(),
+            spotId,
+            reportId,
+            request.getParameter("result"),
+            latitude,
+            longitude
+        );
         if (error == null) {
             response.sendRedirect(back + "&message=Thanks+for+rating");
         } else {

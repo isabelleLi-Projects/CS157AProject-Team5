@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.mysql.cj.log.Log;
 import com.studyfinder.dao.SpotDetailDAO;
 import com.studyfinder.model.SpotDetail;
 
@@ -46,11 +47,11 @@ public class SpotService {
     }
 
     /** @return null on success, otherwise a message to show the student */
-    public String rateLatestReport(int userId, int spotId, int reportId, String result) throws SQLException {
+    public String rateLatestReport(int userId, int spotId, int reportId, String result, double latitude, double longitude) throws SQLException {
         if (!"confirmed".equals(result) && !"disputed".equals(result)) {
             return "Choose accurate or inaccurate.";
         }
-        return spotDetailDAO.rateLatestReport(userId, spotId, reportId, result);
+        return spotDetailDAO.rateLatestReport(userId, spotId, reportId, result, latitude, longitude);
     }
 
     // Choices offered by the report form. Anything else is rejected.
@@ -62,7 +63,7 @@ public class SpotService {
 
     /** @return null on success, otherwise a message to show the student */
     public String submitReport(int userId, int spotId, String noise, String crowdedness, String outlets,
-            String smell, String wifi, String notes) throws SQLException {
+            String smell, String wifi, String notes, double latitude, double longitude) throws SQLException {
         if (!NOISE.contains(noise) || !CROWDEDNESS.contains(crowdedness) || !SMELL.contains(smell)
                 || !WIFI.contains(wifi) || !("1".equals(outlets) || "0".equals(outlets))) {
             return "Fill in every condition.";
@@ -72,7 +73,7 @@ public class SpotService {
             return "Notes can be at most " + MAX_NOTES + " characters.";
         }
         return spotDetailDAO.submitReport(userId, spotId, noise, crowdedness, Integer.parseInt(outlets),
-                smell, wifi, trimmedNotes.isEmpty() ? null : trimmedNotes);
+                smell, wifi, trimmedNotes.isEmpty() ? null : trimmedNotes, latitude, longitude);
     }
 
     private void addTodaysHours(SpotDetail spot, ZonedDateTime now) throws SQLException {

@@ -74,7 +74,7 @@ public class SpotDetailDAO {
 
         try (Connection con = DatabaseConnection.getConnection()) {
             SpotDetail spot;
-            boolean closeEnough = false;
+            
             try (PreparedStatement stmt = con.prepareStatement(spotSql)) {
                 stmt.setInt(1, spotId);
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -199,8 +199,8 @@ public class SpotDetailDAO {
      *
      * @return null on success, otherwise a message to show the student
      */
-    public String submitReport(int userId, int spotId, String noise, String crowdedness, int outlets,
-            String smell, String wifi, String notes) throws SQLException {
+    public String submitReport(int userId, int spotId, String noise, String crowdedness, int outlets, 
+        String smell, String wifi, String notes, double latitude, double longitude) throws SQLException {
         // The spot must exist and be active.
         String spotSql = "SELECT spot_id FROM study_spots WHERE spot_id = ? AND is_active = 1";
         // Only students can report (reports.user_id references students).
@@ -221,6 +221,10 @@ public class SpotDetailDAO {
                 + "VALUES (?, 'submit_report', 'report', ?, ?, NOW())";
 
         try (Connection con = DatabaseConnection.getConnection()) {
+           // Reject the review if the user is too far away.
+            if (!isWithinActionDistance(con, spotId, latitude, longitude)) {
+                return "You must be within 0.3 miles of the study spot to report conditions.";
+            }
             con.setAutoCommit(false);
             try (PreparedStatement spotStmt = con.prepareStatement(spotSql);
                     PreparedStatement studentStmt = con.prepareStatement(studentSql);
@@ -295,7 +299,7 @@ public class SpotDetailDAO {
      *
      * @return null on success, otherwise a message to show the student
      */
-    public String rateLatestReport(int userId, int spotId, int reportId, String result) throws SQLException {
+    public String rateLatestReport(int userId, int spotId, int reportId, String result, double latitude, double longitude) throws SQLException {
         // The newest report for the spot. Locked so the check and the insert see the
         // same row.
         String latestSql = "SELECT report_id, user_id FROM reports "
@@ -317,13 +321,16 @@ public class SpotDetailDAO {
                 + "VALUES (?, 'verify_report', 'report', ?, ?, NOW())";
 
         try (Connection con = DatabaseConnection.getConnection()) {
+            // student must be within 0.3 miles in order to rate the spot 
+            if (!isWithinActionDistance(con, spotId, latitude, longitude)) {
+                return "You must be within 0.3 miles of the study spot to rate this report.";
+            }
             con.setAutoCommit(false);
             try (PreparedStatement latestStmt = con.prepareStatement(latestSql);
                     PreparedStatement studentStmt = con.prepareStatement(studentSql);
                     PreparedStatement verifyStmt = con.prepareStatement(insertVerify);
                     PreparedStatement pointsStmt = con.prepareStatement(addPoints);
-                    PreparedStatement trustStmt = con
-                            .prepareStatement("confirmed".equals(result) ? trustUp : trustDown);
+                    PreparedStatement trustStmt = con.prepareStatement("confirmed".equals(result) ? trustUp : trustDown);
                     PreparedStatement logStmt = con.prepareStatement(insertLog)) {
 
                 int authorId;
@@ -384,95 +391,139 @@ public class SpotDetailDAO {
         }
     }
 
-    public String submitReview(int userId, int spotId, int rating, String reviewText, double latitude, double longitude)
-            throws SQLException {
+    public String submitReview(int userId, int spotId, int rating, String reviewText, double latitude,double longitude) throws SQLException {
+
         if (rating < 1 || rating > 5) {
             return "Rating must be between 1 and 5.";
         }
+
         String text = reviewText == null ? "" : reviewText.trim();
+
         if (text.isEmpty()) {
             return "Please write a review.";
         }
+
         if (text.length() > 255) {
             return "Review must be 255 characters or less.";
         }
 
-        // check whether the user is a student.
-        // ? is replaced by the logged in user's id
-        String studentSql = "SELECT user_id FROM students WHERE user_id = ?";
-        // check whether the study spot is active
-        // spot_id = ? finds the requested spot
-        String spotSql = "SELECT spot_id, latitude, longitude FROM study_spots "
-                + "WHERE spot_id = ? AND is_active = 1";
+        String studentSql =
+                "SELECT user_id FROM students WHERE user_id = ?";
 
-        // check whether the same user already reviewed the same spot
-        String duplicateSql = "SELECT review_id FROM reviews "
+        String duplicateSql =
+                "SELECT review_id FROM reviews "
                 + "WHERE user_id = ? AND spot_id = ?";
-        // adds a new row to reviews with the current date and time
-        String insertSql = "INSERT INTO reviews "
+
+        String insertSql =
+                "INSERT INTO reviews "
                 + "(user_id, spot_id, rating, review_text, created_at, is_visible) "
                 + "VALUES (?, ?, ?, ?, NOW(), 1)";
-        // adds 5 points to the student who reviewed
-        String addPointsSql = "UPDATE students "
+
+        String addPointsSql =
+                "UPDATE students "
                 + "SET points = points + 5 "
                 + "WHERE user_id = ?";
 
         try (Connection con = DatabaseConnection.getConnection()) {
-            try (PreparedStatement stmt = con.prepareStatement(studentSql)) {
-                stmt.setInt(1, userId);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (!rs.next()) {
-                        return "Only students can leave reviews.";
+
+            // Reject the review if the user is too far away.
+            if (!isWithinActionDistance(con, spotId, latitude, longitude)) {
+                return "You must be within 0.3 miles of the study spot to leave a review.";
+            }
+
+            con.setAutoCommit(false);
+
+            try {
+                // Verify that the user is a student.
+                try (PreparedStatement stmt = con.prepareStatement(studentSql)) {
+                    stmt.setInt(1, userId);
+
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            con.rollback();
+                            return "Only students can leave reviews.";
+                        }
                     }
                 }
-            }
 
-            try (PreparedStatement stmt = con.prepareStatement(spotSql)) {
-                stmt.setInt(1, spotId);
+                // Prevent duplicate reviews.
+                try (PreparedStatement stmt = con.prepareStatement(duplicateSql)) {
+                    stmt.setInt(1, userId);
+                    stmt.setInt(2, spotId);
 
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (!rs.next()) {
-                        return "Study spot not found.";
-                    }
-                    double spotLatitude = rs.getDouble("latitude");
-                    double spotLongitude = rs.getDouble("longitude");
-
-                    double distance = calculateDistance(
-                            latitude,
-                            longitude,
-                            spotLatitude,
-                            spotLongitude);
-                    closeEnough = distance <= 100; // 0.1 km = 100 meters
-                }
-            }
-            try (PreparedStatement stmt = con.prepareStatement(duplicateSql)) {
-                stmt.setInt(1, userId);
-                stmt.setInt(2, spotId);
-
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        return "You already reviewed this study spot.";
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            con.rollback();
+                            return "You already reviewed this study spot.";
+                        }
                     }
                 }
-            }
-            try (PreparedStatement stmt = con.prepareStatement(insertSql)) {
-                stmt.setInt(1, userId);
-                stmt.setInt(2, spotId);
-                stmt.setInt(3, rating);
-                stmt.setString(4, text);
-                stmt.executeUpdate();
-            }
-            if (closeEnough) {
-                try (PreparedStatement pointsStmt = con.prepareStatement(addPointsSql)) {
 
-                    pointsStmt.setInt(1, userId);
-                    pointsStmt.executeUpdate();
+                // Insert the review.
+                try (PreparedStatement stmt = con.prepareStatement(insertSql)) {
+                    stmt.setInt(1, userId);
+                    stmt.setInt(2, spotId);
+                    stmt.setInt(3, rating);
+                    stmt.setString(4, text);
+                    stmt.executeUpdate();
                 }
-            }
 
+                // Award points only after the review is successfully inserted.
+                try (PreparedStatement stmt = con.prepareStatement(addPointsSql)) {
+                    stmt.setInt(1, userId);
+                    stmt.executeUpdate();
+                }
+
+                con.commit();
+                return null;
+
+            } catch (SQLException exception) {
+                con.rollback();
+                throw exception;
+
+            } finally {
+                con.setAutoCommit(true);
+            }
+        }
+    }
+    // student must be within 0.3 miles of the study spot
+    private static final double MAX_ACTION_DISTANCE_METERS = 0.3 * 1609.344;
+
+    private boolean isWithinActionDistance(
+            Connection con,
+            int spotId,
+            double userLatitude,
+            double userLongitude) throws SQLException {
+
+        if (!Double.isFinite(userLatitude) || !Double.isFinite(userLongitude)) {
+            return false;
         }
 
-        return null;
+        String sql = """
+            SELECT latitude, longitude
+            FROM study_spots
+            WHERE spot_id = ? AND is_active = 1
+            """;
+
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, spotId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+
+                double spotLatitude = rs.getDouble("latitude");
+                double spotLongitude = rs.getDouble("longitude");
+
+                return calculateDistance(
+                        userLatitude,
+                        userLongitude,
+                        spotLatitude,
+                        spotLongitude
+                ) <= MAX_ACTION_DISTANCE_METERS;
+            }
+        }
     }
 
     private double calculateDistance(

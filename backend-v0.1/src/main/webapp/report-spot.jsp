@@ -18,8 +18,12 @@
     }
 
     int spotId;
+    double latitude;
+    double longitude;
     try {
         spotId = Integer.parseInt(request.getParameter("spotId"));
+        latitude = Double.parseDouble(request.getParameter("latitude"));
+        longitude = Double.parseDouble(request.getParameter("longitude"));
     } catch (NumberFormatException exception) {
         response.sendRedirect(context + "/study-spots.jsp?error=Spot+not+found");
         return;
@@ -36,7 +40,7 @@
         String error = new SpotService().submitReport(current.id(), spotId,
                 request.getParameter("noise"), request.getParameter("crowdedness"),
                 request.getParameter("outlets"), request.getParameter("smell"),
-                request.getParameter("wifi"), request.getParameter("notes"));
+                request.getParameter("wifi"), request.getParameter("notes"), latitude, longitude);
         if (error == null) {
             response.sendRedirect(back + "&message=Thanks+for+reporting+conditions");
         } else {
