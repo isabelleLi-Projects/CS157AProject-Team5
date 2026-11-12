@@ -55,6 +55,17 @@ public class AdminActionServlet extends HttpServlet {
             } else if ("addSpot".equals(action)) {
                 addStudySpot(request, service);
 
+            } else if ("setActive".equals(action)) {
+                // Deactivate / reactivate a student, study spot, review, or report, then go back to that tab.
+                boolean active = "1".equals(request.getParameter("active"));
+                service.setActive(current.id(), request.getParameter("type"), request.getParameter("id"),
+                        request.getParameter("active"));
+                String tab = request.getParameter("returnTab");
+                response.sendRedirect(request.getContextPath() + "/study-spots.jsp?adminTab="
+                        + java.net.URLEncoder.encode(tab == null ? "" : tab, java.nio.charset.StandardCharsets.UTF_8)
+                        + "&adminMessage=" + (active ? "Made+active" : "Made+inactive"));
+                return;
+
             } else {
                 response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
@@ -73,7 +84,9 @@ public class AdminActionServlet extends HttpServlet {
             String message = exception instanceof NumberFormatException
                     ? "Please enter whole numbers where a number is required."
                     : exception.getMessage();
-            response.sendRedirect(request.getContextPath() + "/study-spots.jsp?adminTab=Add+Study+Spot&adminError="
+            String errorTab = request.getParameter("returnTab") == null ? "Add Study Spot" : request.getParameter("returnTab");
+            response.sendRedirect(request.getContextPath() + "/study-spots.jsp?adminTab="
+                    + java.net.URLEncoder.encode(errorTab, java.nio.charset.StandardCharsets.UTF_8) + "&adminError="
                     + java.net.URLEncoder.encode(message, java.nio.charset.StandardCharsets.UTF_8));
         } catch (Exception exception) {
             log("Administrator action failed", exception);

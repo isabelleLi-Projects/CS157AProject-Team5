@@ -32,6 +32,7 @@ public class AuthService {
         }
         if (!user.isEmailVerified()) throw new IllegalArgumentException("Verify your SJSU email before logging in.");
         if ("suspended".equalsIgnoreCase(user.getStatus())) throw new IllegalArgumentException("This account is suspended.");
+        if ("inactive".equalsIgnoreCase(user.getStatus())) throw new IllegalArgumentException("This account is inactive. Contact an administrator.");
         SessionUser sessionUser = SessionUser.from(user);
         AuthSession.start(request, sessionUser);
         return sessionUser;

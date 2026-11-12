@@ -59,6 +59,29 @@ public class AdminDashboardService {
                 amenityNames, buildingId == null ? null : hours);
     }
 
+    public List<Map<String, Object>> getAllSpots() throws SQLException { return dao.getAllSpots(); }
+
+    private static final List<String> ACTIVE_TYPES = List.of("student", "spot", "review", "report");
+
+    /**
+     * Makes a student, study spot, review, or report active or inactive.
+     *
+     * @throws IllegalArgumentException with a message to show the administrator
+     */
+    public void setActive(int adminId, String type, String idText, String activeText) throws SQLException {
+        if (!ACTIVE_TYPES.contains(type)) throw new IllegalArgumentException("Unknown item type.");
+        int id;
+        try {
+            id = Integer.parseInt(idText);
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Unknown item.");
+        }
+        boolean active = "1".equals(activeText);
+        if (!dao.setActive(adminId, type, id, active)) {
+            throw new IllegalArgumentException("That " + type + " was not found.");
+        }
+    }
+
     public List<Map<String, Object>> getBuildings() throws SQLException {
         List<Map<String, Object>> buildings = dao.getBuildings();
         Map<Object, Map<String, String[]>> hoursByBuilding = new LinkedHashMap<>();
@@ -108,6 +131,34 @@ public class AdminDashboardService {
         if (longitude.abs().compareTo(BigDecimal.valueOf(180)) > 0) {
             throw new IllegalArgumentException("Longitude must be between -180 and 180.");
         }
+        if (!isOnCampus(latitude.doubleValue(), longitude.doubleValue())) {
+            throw new IllegalArgumentException("Coordinates must be on the SJSU main campus.");
+        }
         return new double[] { latitude.doubleValue(), longitude.doubleValue() };
+    }
+
+    // Outline of the SJSU main campus as {latitude, longitude} corners, going around the edge.
+    // Taken from OpenStreetMap (c) OpenStreetMap contributors. Same points as SJSU_CAMPUS in AdminSpotForm.tsx.
+    private static final double[][] SJSU_CAMPUS = {
+        { 37.335805, -121.885877 }, // 4th St & San Fernando St (King Library corner)
+        { 37.333161, -121.883917 },
+        { 37.331614, -121.882799 }, // 4th St & San Salvador St
+        { 37.334576, -121.876568 }, // 10th St & San Salvador St
+        { 37.338646, -121.879621 }, // 10th St & San Fernando St
+        { 37.337289, -121.882765 },
+    };
+
+    /** True when the point is inside the campus outline (ray casting test). */
+    public static boolean isOnCampus(double latitude, double longitude) {
+        boolean inside = false;
+        for (int i = 0, j = SJSU_CAMPUS.length - 1; i < SJSU_CAMPUS.length; j = i++) {
+            double latI = SJSU_CAMPUS[i][0], lngI = SJSU_CAMPUS[i][1];
+            double latJ = SJSU_CAMPUS[j][0], lngJ = SJSU_CAMPUS[j][1];
+            if ((latI > latitude) != (latJ > latitude)
+                    && longitude < (lngJ - lngI) * (latitude - latI) / (latJ - latI) + lngI) {
+                inside = !inside;
+            }
+        }
+        return inside;
     }
 }

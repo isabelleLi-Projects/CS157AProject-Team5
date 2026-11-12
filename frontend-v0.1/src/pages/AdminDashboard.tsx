@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import MapView from '../components/MapView'
 import { STUDY_SPOTS } from '../data/studySpots'
 import type { StudySpot } from '../model/StudySpot'
@@ -13,7 +13,11 @@ type AdminRow = {
   secondary: string
   status?: string
   meta?: string
+  active?: boolean // present when the admin can make this row active/inactive
 }
+
+// What a Deactivate/Reactivate button changes, and which tab to come back to.
+type ToggleTarget = { type: 'student' | 'spot' | 'review' | 'report'; tab: AdminTab }
 
 type AdminDashboardData = {
   spotClicks?: Array<{ spot: string; clicks: number }>
@@ -22,6 +26,7 @@ type AdminDashboardData = {
   activityLogs?: AdminRow[]
   recentRedemptions?: AdminRow[]
   users?: AdminRow[]
+  spots?: AdminRow[]
   studySpots?: StudySpot[]
   counts?: { reports?: number; reviews?: number; users?: number; activeSpots?: number; redemptions?: number }
 }
@@ -50,6 +55,17 @@ const tabs: AdminTab[] = ['Dashboard', 'Add Study Spot', 'Reported Students', 'A
 export default function AdminDashboard() {
   // admin-action can send the admin back to a tab (for example after a form error)
   const [activeTab, setActiveTab] = useState<AdminTab>(() => tabs.find((tab) => tab === window.adminTab) ?? 'Dashboard')
+  // "Saved" / error banner from admin-action. It is shown once, then cleared when the admin moves to another tab.
+  const [banner, setBanner] = useState(() => ({ error: window.adminError ?? '', message: window.adminMessage ?? '' }))
+  const goToTab = (tab: AdminTab) => {
+    setActiveTab(tab)
+    setBanner({ error: '', message: '' })
+  }
+
+  // Remove ?adminMessage=... from the address bar so refreshing the page doesn't show the banner again.
+  useEffect(() => {
+    if (window.location.search) window.history.replaceState(null, '', window.location.pathname)
+  }, [])
   const data = useMemo(() => ({ ...emptyData, ...window.adminDashboard, studySpots: window.adminDashboard?.studySpots ?? STUDY_SPOTS }), [])
   const counts = { ...emptyData.counts, ...data.counts }
 
@@ -58,15 +74,15 @@ export default function AdminDashboard() {
       <AdminHeader />
 
       <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <AdminSidebar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+        <AdminSidebar tabs={tabs} activeTab={activeTab} onTabChange={goToTab} />
 
         <main className="min-w-0">
-          {(window.adminError || window.adminMessage) && (
-            <p role={window.adminError ? 'alert' : 'status'} className={`mb-4 rounded-xl px-4 py-3 text-sm ${window.adminError ? 'flash-error' : 'flash-success'}`}>
-              {window.adminError || window.adminMessage}
+          {(banner.error || banner.message) && (
+            <p role={banner.error ? 'alert' : 'status'} className={`mb-4 rounded-xl px-4 py-3 text-sm ${banner.error ? 'flash-error' : 'flash-success'}`}>
+              {banner.error || banner.message}
             </p>
           )}
-          {activeTab === 'Dashboard' ? <DashboardHome data={data} counts={counts} onNavigate={setActiveTab} /> : <AdminSection tab={activeTab} data={data} />}
+          {activeTab === 'Dashboard' ? <DashboardHome data={data} counts={counts} onNavigate={goToTab} /> : <AdminSection tab={activeTab} data={data} />}
         </main>
       </div>
     </div>
@@ -115,9 +131,25 @@ function Panel({ title, action, onAction, children }: { title: string; action: s
   return <section className="surface-background standard-border rounded-2xl p-5"><div className="mb-4 flex items-center justify-between gap-3"><h2 className="font-display text-xl text-main">{title}</h2><button onClick={onAction} className="btn-link text-xs">{action}</button></div>{children}</section>
 }
 
-function ActivityList({ rows, showStatus = false }: { rows: AdminRow[]; showStatus?: boolean }) {
+function ActivityList({ rows, showStatus = false, toggle }: { rows: AdminRow[]; showStatus?: boolean; toggle?: ToggleTarget }) {
   if (!rows.length) return <EmptyState title="Nothing to display" text="New activity will appear here." />
-  return <div className="divide-y divide-[#e2ddd5]">{rows.map((row) => <div key={`${row.id}-${row.label}`} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"><div className="min-w-0"><p className="truncate text-sm font-medium text-main">{row.label}</p><p className="truncate text-xs text-muted">{row.secondary} · {row.meta}</p></div>{showStatus && row.status && <span className="rounded-full bg-[#d1ead9] px-2 py-1 text-[11px] font-semibold text-[#2d5a3d]">{row.status}</span>}</div>)}</div>
+  return <div className="divide-y divide-[#e2ddd5]">{rows.map((row) => <div key={`${row.id}-${row.label}`} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"><div className="min-w-0"><p className={`truncate text-sm font-medium ${row.active === false ? 'text-muted line-through' : 'text-main'}`}>{row.label}</p><p className="truncate text-xs text-muted">{row.secondary} · {row.meta}</p></div><div className="flex shrink-0 items-center gap-2">{showStatus && row.status && <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${row.active === false ? 'bg-[#f6dcd7] text-[#8c2418]' : 'bg-[#d1ead9] text-[#2d5a3d]'}`}>{row.status}</span>}{toggle && row.active !== undefined && <ActiveToggle row={row} target={toggle} />}</div></div>)}</div>
+}
+
+// Deactivate / Reactivate button. Posts to the admin-action servlet, which saves the change and logs it.
+function ActiveToggle({ row, target }: { row: AdminRow; target: ToggleTarget }) {
+  return (
+    <form method="post" action={`${window.studyFinderContext ?? ''}/admin-action`}>
+      <input type="hidden" name="action" value="setActive" />
+      <input type="hidden" name="type" value={target.type} />
+      <input type="hidden" name="id" value={row.id} />
+      <input type="hidden" name="active" value={row.active ? '0' : '1'} />
+      <input type="hidden" name="returnTab" value={target.tab} />
+      <button type="submit" className={`${row.active ? 'btn-secondary' : 'btn-primary'} px-3 py-1 text-xs`}>
+        {row.active ? 'Deactivate' : 'Reactivate'}
+      </button>
+    </form>
+  )
 }
 
 function MiniBars({ values }: { values: Array<{ spot: string; clicks: number }> }) {
@@ -132,5 +164,7 @@ function EmptyState({ title, text }: { title: string; text: string }) {
 function AdminSection({ tab, data }: { tab: AdminTab; data: AdminDashboardData }) {
   const titles: Record<AdminTab, string> = { Dashboard: 'Dashboard', 'Add Study Spot': 'Manage study spots', 'Reported Students': 'Reported students', 'Add Rewards': 'Manage rewards', Reports: 'Reports', Reviews: 'Reviews', 'All Users': 'All users', 'Historical Trends': 'Historical trends' }
   const rows = tab === 'Reports' ? data.reports : tab === 'Reviews' ? data.reviews : tab === 'Reported Students' ? data.activityLogs : tab === 'All Users' ? data.users : []
-  return <section><div className="mb-6"><p className="text-sm text-muted">Administration</p><h1 className="font-display text-3xl text-main">{titles[tab]}</h1></div><div className="surface-background standard-border rounded-2xl p-5">{tab === 'Add Study Spot' ? <SpotForm /> : tab === 'Add Rewards' ? <RewardForm /> : tab === 'Historical Trends' ? <EmptyState title="Historical trends" text="Charts will use preserved reports and the future study_spot_views table." /> : <ActivityList rows={rows ?? []} showStatus />}</div></section>
+  // Tabs whose rows can be made active/inactive.
+  const toggle: ToggleTarget | undefined = tab === 'Reports' ? { type: 'report', tab } : tab === 'Reviews' ? { type: 'review', tab } : tab === 'All Users' ? { type: 'student', tab } : undefined
+  return <section><div className="mb-6"><p className="text-sm text-muted">Administration</p><h1 className="font-display text-3xl text-main">{titles[tab]}</h1></div><div className="surface-background standard-border rounded-2xl p-5">{tab === 'Add Study Spot' ? <SpotForm /> : tab === 'Add Rewards' ? <RewardForm /> : tab === 'Historical Trends' ? <EmptyState title="Historical trends" text="Charts will use preserved reports and the future study_spot_views table." /> : <ActivityList rows={rows ?? []} showStatus toggle={toggle} />}</div>{tab === 'Add Study Spot' && <div className="surface-background standard-border mt-6 rounded-2xl p-5"><h2 className="mb-4 font-display text-xl text-main">Existing study spots</h2><ActivityList rows={data.spots ?? []} showStatus toggle={{ type: 'spot', tab }} /></div>}</section>
 }

@@ -46,9 +46,20 @@ public class AdminDashboardDAO {
         return counts;
     }
 
+    /**
+     * SQL condition that is true when report r is hidden: its newest row in moderates
+     * has action 'hidden'. Reports have no is_active column, so moderates (an admin's
+     * action on a report) records hide/restore instead.
+     */
+    public static final String REPORT_HIDDEN =
+            "EXISTS (SELECT 1 FROM moderates m WHERE m.report_id = r.report_id AND m.action = 'hidden' "
+            + "AND m.moderation_id = (SELECT MAX(m2.moderation_id) FROM moderates m2 WHERE m2.report_id = r.report_id))";
+
     public List<Map<String, Object>> getReports() throws SQLException {
         return rows("SELECT r.report_id id, CONCAT('Report on ', s.spot_name) label, u.full_name secondary, "
-                + "DATE_FORMAT(r.created_at, '%Y-%m-%d %H:%i') meta, 'Review' status "
+                + "DATE_FORMAT(r.created_at, '%Y-%m-%d %H:%i') meta, "
+                + "CASE WHEN " + REPORT_HIDDEN + " THEN 'Inactive' ELSE 'Active' END status, "
+                + "CASE WHEN " + REPORT_HIDDEN + " THEN 0 ELSE 1 END active "
                 + "FROM reports r JOIN study_spots s ON s.spot_id = r.spot_id JOIN users u ON u.user_id = r.user_id "
                 + "ORDER BY r.created_at DESC LIMIT 100");
     }
@@ -56,14 +67,28 @@ public class AdminDashboardDAO {
     public List<Map<String, Object>> getReviews() throws SQLException {
         return rows("SELECT rv.review_id id, CONCAT('Review of ', s.spot_name) label, u.full_name secondary, "
                 + "DATE_FORMAT(rv.created_at, '%Y-%m-%d %H:%i') meta, "
-                + "CASE WHEN rv.is_visible = 1 THEN 'Visible' ELSE 'Flagged' END status "
+                + "CASE WHEN rv.is_visible = 1 THEN 'Visible' ELSE 'Hidden' END status, "
+                + "rv.is_visible active "
                 + "FROM reviews rv JOIN study_spots s ON s.spot_id = rv.spot_id JOIN users u ON u.user_id = rv.user_id "
                 + "ORDER BY rv.created_at DESC LIMIT 100");
     }
 
     public List<Map<String, Object>> getUsers() throws SQLException {
-        return rows("SELECT user_id id, full_name label, email secondary, account_status meta, 'User' status "
-                + "FROM users ORDER BY created_at DESC LIMIT 100");
+        // Students can be deactivated (active is 1/0); administrators have active = NULL, so no button.
+        return rows("SELECT u.user_id id, u.full_name label, u.email secondary, u.account_status meta, "
+                + "CASE WHEN a.user_id IS NOT NULL THEN 'Admin' WHEN u.account_status = 'inactive' THEN 'Inactive' ELSE 'Student' END status, "
+                + "CASE WHEN a.user_id IS NOT NULL THEN NULL WHEN u.account_status = 'inactive' THEN 0 ELSE 1 END active "
+                + "FROM users u LEFT JOIN administrators a ON a.user_id = u.user_id "
+                + "ORDER BY u.created_at DESC LIMIT 100");
+    }
+
+    /** Every study spot, active or not, so an admin can turn spots off and back on. */
+    public List<Map<String, Object>> getAllSpots() throws SQLException {
+        return rows("SELECT s.spot_id id, s.spot_name label, COALESCE(b.acronym, 'Outdoor') secondary, "
+                + "s.location_details meta, CASE WHEN s.is_active = 1 THEN 'Active' ELSE 'Inactive' END status, "
+                + "s.is_active active "
+                + "FROM study_spots s LEFT JOIN buildings b ON b.building_id = s.building_id "
+                + "ORDER BY s.spot_name");
     }
 
     public List<Map<String, Object>> getActivityLogs() throws SQLException {
@@ -184,6 +209,65 @@ public class AdminDashboardDAO {
                 con.rollback();
                 throw exception;
 
+            } finally {
+                con.setAutoCommit(true);
+            }
+        }
+    }
+
+    /**
+     * Turns a student, study spot, review, or report on or off, and records it in
+     * activity_logs, in one transaction.
+     *
+     * @return false when no row with that id exists
+     */
+    public boolean setActive(int adminId, String type, int id, boolean active) throws SQLException {
+        String change;
+        switch (type) {
+            // Only students (not administrators) can be deactivated. Login refuses 'inactive' accounts.
+            case "student" -> change = "UPDATE users SET account_status = ? WHERE user_id = ? "
+                    + "AND user_id IN (SELECT user_id FROM students)";
+            case "spot" -> change = "UPDATE study_spots SET is_active = ? WHERE spot_id = ?";
+            case "review" -> change = "UPDATE reviews SET is_visible = ? WHERE review_id = ?";
+            // Reports: add a moderates row; the newest one decides if the report is hidden.
+            case "report" -> change = "INSERT INTO moderates (administrator_id, report_id, action, reason, created_at) "
+                    + "SELECT ?, report_id, ?, ?, NOW() FROM reports WHERE report_id = ?";
+            default -> throw new IllegalArgumentException("Unknown type: " + type);
+        }
+        String log = "INSERT INTO activity_logs (user_id, action_type, target_type, target_id, details, created_at) "
+                + "VALUES (?, ?, ?, ?, ?, NOW())";
+
+        try (Connection con = DatabaseConnection.getConnection();
+                PreparedStatement changeStmt = con.prepareStatement(change);
+                PreparedStatement logStmt = con.prepareStatement(log)) {
+            con.setAutoCommit(false);
+            try {
+                switch (type) {
+                    case "student" -> { changeStmt.setString(1, active ? "active" : "inactive"); changeStmt.setInt(2, id); }
+                    case "spot", "review" -> { changeStmt.setInt(1, active ? 1 : 0); changeStmt.setInt(2, id); }
+                    default -> {
+                        changeStmt.setInt(1, adminId);
+                        changeStmt.setString(2, active ? "restored" : "hidden");
+                        changeStmt.setString(3, active ? "Report made active by an administrator."
+                                : "Report made inactive by an administrator.");
+                        changeStmt.setInt(4, id);
+                    }
+                }
+                if (changeStmt.executeUpdate() == 0) {
+                    con.rollback();
+                    return false;
+                }
+                logStmt.setInt(1, adminId);
+                logStmt.setString(2, (active ? "activate_" : "deactivate_") + type);
+                logStmt.setString(3, type);
+                logStmt.setInt(4, id);
+                logStmt.setString(5, "Administrator made " + type + " " + id + (active ? " active." : " inactive."));
+                logStmt.executeUpdate();
+                con.commit();
+                return true;
+            } catch (SQLException exception) {
+                con.rollback();
+                throw exception;
             } finally {
                 con.setAutoCommit(true);
             }

@@ -29,6 +29,9 @@ const noiseLevel = (noise: string) => {
 
 const students = (count: number) => `${count} student${count === 1 ? '' : 's'}`
 
+// Same limit the server checks (SpotDetailDAO): students must be within 0.3 miles to rate, report, or review.
+const MAX_ACTION_MILES = 0.3
+
 export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
   const currentUser = window.currentUser
   const role = currentUser?.role?.toLowerCase() ?? 'guest'
@@ -64,6 +67,9 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
   const distance = userLocation
     ? distanceInMiles(userLocation.lat, userLocation.lng, spot.latitude, spot.longitude)
     : null
+  // Turn off rating, reporting, and reviewing when the student is too far away: either the page
+  // knows their distance, or the server just sent back its "within 0.3 miles" message.
+  const tooFar = distance !== null ? distance > MAX_ACTION_MILES : (window.flashError ?? '').includes('0.3 miles')
 
   return (
     <div className="app-background min-h-screen">
@@ -84,6 +90,16 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
         </a>
 
         <FlashBanner />
+        {tooFar && role === 'student' && (
+          <div role="status" className="flash-error text-sm rounded-xl px-4 py-3 mt-3 flex flex-wrap items-center justify-between gap-2">
+            <span>
+              You're more than {MAX_ACTION_MILES} miles from this spot, so rating, reporting, and reviewing are turned off.
+            </span>
+            <button type="button" onClick={requestLocation} className="btn-link text-sm">
+              I'm closer now, check again
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-6 mt-4">
           {/* Left column: about, conditions + rating, recent reports, reviews */}
           <div className="space-y-6">
@@ -124,7 +140,7 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                     <p className="text-xs text-muted mt-1 mb-3">
                       {students(latest.confirmed)} said accurate, {latest.disputed} said inaccurate.
                     </p>
-                    <RatingControls spot={spot} report={latest} role={role} />
+                    <RatingControls spot={spot} report={latest} role={role} locked={tooFar} />
                   </div>
                 </>
               ) : (
@@ -133,7 +149,7 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
             </Card>
 
             <Card title="Report conditions">
-              <ReportForm spotId={spot.spotId} role={role} />
+              <ReportForm spotId={spot.spotId} role={role} locked={tooFar} />
             </Card>
 
             {spot.reports.length > 0 && (
@@ -254,7 +270,7 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
             </Card>
             
             <Card title="Leave a review">
-              <ReviewForm spotId={spot.spotId} role={role} />
+              <ReviewForm spotId={spot.spotId} role={role} locked={tooFar} />
             </Card>
           </div>
         </div>
@@ -266,9 +282,11 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
 function ReviewForm({
   spotId,
   role,
+  locked,
 }: {
   spotId: number
   role: string
+  locked: boolean
 }) {
   const [rating, setRating] = useState(0)
 
@@ -304,6 +322,7 @@ function ReviewForm({
             <button
               key={star}
               type="button"
+              disabled={locked}
               onClick={() => setRating(star)}
               className={`text-3xl ${
                 star <= rating ? 'text-yellow-500' : 'text-gray-300'
@@ -319,12 +338,13 @@ function ReviewForm({
       <textarea
         name="reviewText"
         required
+        disabled={locked}
         maxLength={255}
         rows={4}
         placeholder="Share your experience at this study spot..."
         className="search-input w-full px-3 py-2 text-sm resize-none"
       />
-      <button type="submit" disabled={rating === 0} className="btn-primary px-4 py-2.5 text-sm disabled:opacity-50">
+      <button type="submit" disabled={locked || rating === 0} className="btn-primary px-4 py-2.5 text-sm disabled:opacity-50">
         Submit review
       </button>
     </form>
@@ -332,7 +352,7 @@ function ReviewForm({
 }
 
 // Accurate / Inaccurate buttons. The server (rate-spot.jsp) re-checks every rule shown here.
-function RatingControls({ spot, report, role }: { spot: SpotDetail; report: SpotReport; role: string }) {
+function RatingControls({ spot, report, role, locked }: { spot: SpotDetail; report: SpotReport; role: string; locked: boolean }) {
   if (role === 'guest') {
     return (
       <a href={`${window.studyFinderContext ?? ''}/login.jsp`} className="btn-link text-sm">
@@ -353,8 +373,8 @@ function RatingControls({ spot, report, role }: { spot: SpotDetail; report: Spot
       <input type="hidden" name="spotId" value={spot.spotId} />
       <input type="hidden" name="reportId" value={report.reportId} />
       <div className="flex gap-3">
-        <RateButton value="confirmed" chosen={rated} label="Accurate ✓" />
-        <RateButton value="disputed" chosen={rated} label="Inaccurate ✗" />
+        <RateButton value="confirmed" chosen={rated} locked={locked} label="Accurate ✓" />
+        <RateButton value="disputed" chosen={rated} locked={locked} label="Inaccurate ✗" />
       </div>
       {rated ? (
         <p className="text-xs text-muted mt-2">You rated this {rated === 'confirmed' ? 'accurate' : 'inaccurate'}.</p>
@@ -375,7 +395,7 @@ const REPORT_FIELDS = [
 ] as const
 
 // Form for a student to report what the spot is like right now. Posts to report-spot.jsp.
-function ReportForm({ spotId, role }: { spotId: number; role: string }) {
+function ReportForm({ spotId, role, locked }: { spotId: number; role: string; locked: boolean }) {
   const [open, setOpen] = useState(false)
 
   if (role === 'guest') {
@@ -392,7 +412,7 @@ function ReportForm({ spotId, role }: { spotId: number; role: string }) {
     return (
       <>
         <p className="text-sm text-muted mb-3">Here now? Tell other students what it's like.</p>
-        <button type="button" onClick={() => setOpen(true)} className="btn-secondary px-4 py-2.5 text-sm">
+        <button type="button" disabled={locked} onClick={() => setOpen(true)} className="btn-secondary px-4 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
           Report current conditions
         </button>
       </>
@@ -433,7 +453,7 @@ function ReportForm({ spotId, role }: { spotId: number; role: string }) {
         />
       </label>
       <div className="flex gap-3 mt-3">
-        <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
+        <button type="submit" disabled={locked} className="btn-primary px-4 py-2.5 text-sm disabled:opacity-50">
           Submit report
         </button>
         <button type="button" onClick={() => setOpen(false)} className="btn-secondary px-4 py-2.5 text-sm">
@@ -444,17 +464,17 @@ function ReportForm({ spotId, role }: { spotId: number; role: string }) {
   )
 }
 
-function RateButton({ value, chosen, label }: { value: string; chosen: string | null; label: string }) {
+function RateButton({ value, chosen, locked, label }: { value: string; chosen: string | null; locked: boolean; label: string }) {
   const isChosen = chosen === value
   return (
     <button
       type="submit"
       name="result"
       value={value}
-      disabled={chosen !== null}
+      disabled={locked || chosen !== null}
       aria-pressed={isChosen}
       className={`flex-1 py-2.5 text-sm ${isChosen ? 'btn-primary' : 'btn-secondary'} ${
-        chosen !== null && !isChosen ? 'opacity-50' : ''
+        (chosen !== null && !isChosen) || locked ? 'opacity-50' : ''
       } disabled:cursor-not-allowed`}
     >
       {label}

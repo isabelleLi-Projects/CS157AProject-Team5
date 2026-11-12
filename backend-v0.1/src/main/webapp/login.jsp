@@ -1,5 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="com.studyfinder.service.AuthService" %>
+<%@ page import="com.studyfinder.model.SessionUser" %>
+<%@ page import="com.studyfinder.util.AuthSession" %>
 <%!
     private String js(String value) {
         if (value == null) return "";
@@ -9,6 +11,15 @@
     }
 %>
 <%
+    // Never cache this page, so the browser's Back button asks the server again after login.
+    response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    // A logged-in student or admin can't come back to the login page until they log out.
+    // Guests still can, so they are able to log in.
+    SessionUser signedIn = AuthSession.current(request);
+    if (signedIn != null && !signedIn.isGuest() && "GET".equalsIgnoreCase(request.getMethod())) {
+        response.sendRedirect(request.getContextPath() + "/study-spots.jsp");
+        return;
+    }
     AuthService authService = new AuthService();
     String error = null;
     String success = null;
@@ -61,7 +72,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StudyFinder Login</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-4jkmnou7.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-CN-0CXYc.css">
   <style>
     .auth-input { width:100%; border:0; border-bottom:1px solid #e2ddd5; border-radius:0; background:transparent; color:#1c1a16; outline:none; padding:.65rem 0; font:inherit; }
     .auth-input::placeholder { color:#8a8070; }
@@ -82,6 +93,6 @@
     window.authSuccess = "<%= js(success) %>";
     window.studyFinderContext = "<%= js(request.getContextPath()) %>";
   </script>
-  <script type="module" src="${pageContext.request.contextPath}/assets/index-VOlkoGyR.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/assets/index-CAcoot0J.js"></script>
 </body>
 </html>

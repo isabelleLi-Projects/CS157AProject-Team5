@@ -56,7 +56,7 @@ public class SpotDetailDAO {
                 + "FROM reports r "
                 + "JOIN users u ON u.user_id = r.user_id "
                 + "LEFT JOIN verifies v ON v.report_id = r.report_id "
-                + "WHERE r.spot_id = ? "
+                + "WHERE r.spot_id = ? AND NOT " + AdminDashboardDAO.REPORT_HIDDEN + " "
                 + "GROUP BY r.report_id, r.user_id, u.full_name, r.noise_level, r.crowdedness, "
                 + "r.outlets_available, r.smell_level, r.wifi_quality, r.notes, r.created_at "
                 + "ORDER BY r.created_at DESC, r.report_id DESC "
@@ -302,8 +302,9 @@ public class SpotDetailDAO {
     public String rateLatestReport(int userId, int spotId, int reportId, String result, double latitude, double longitude) throws SQLException {
         // The newest report for the spot. Locked so the check and the insert see the
         // same row.
-        String latestSql = "SELECT report_id, user_id FROM reports "
-                + "WHERE spot_id = ? "
+        // Reports an administrator made inactive are skipped.
+        String latestSql = "SELECT r.report_id, r.user_id FROM reports r "
+                + "WHERE r.spot_id = ? AND NOT " + AdminDashboardDAO.REPORT_HIDDEN + " "
                 + "ORDER BY created_at DESC, report_id DESC LIMIT 1 FOR UPDATE";
         // Only students can rate (verifies.user_id references students).
         String studentSql = "SELECT user_id FROM students WHERE user_id = ?";
