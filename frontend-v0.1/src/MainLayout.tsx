@@ -1,6 +1,5 @@
-import { useMemo, useState } from 'react'
+import {useEffect, useMemo, useState } from 'react'
 import { FILTERS, RECENT_SPOTS, REWARDS, STUDY_SPOTS } from './data/studySpots'
-
 import SpotCard from './components/SpotCard'
 import Header from './components/Header'
 import HeroSection from './components/HeroSection'
@@ -10,26 +9,95 @@ import QuickActions from './components/QuickActions'
 import RewardsPreview from './components/RewardsPreview'
 import SpotFilters from './components/SpotFilters'
 import SpotSection from './components/SpotSection'
+import MapView from './components/MapView'
+import FlashBanner from './components/FlashBanner'
+import SuggestSpotForm from './components/SuggestSpotForm'
+import { distanceInMiles } from './utils/distance'
+
+type UserLocation = {
+  lat: number
+  lng: number
+}
+// Tabs that can be opened directly with study-spots.jsp?nav=... (used by the Study Spot page header).
+const NAV_TABS = ['Home', 'Find Spots', 'Rewards']
 
 export default function MainLayout() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true)
-  const [locationDismissed, setLocationDismissed] = useState(false)
+  const currentUser = window.currentUser
+  const isGuest = currentUser?.role?.toLowerCase() == 'guest'
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(currentUser && !isGuest))
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [showLocationBanner, setShowLocationBanner] = useState(true)
+  const [locationError, setLocationError] = useState('')
+  // const [locationDismissed, setLocationDismissed] = useState(false)
   const [search, setSearch] = useState('')
-  const [activeNav, setActiveNav] = useState('Home')
-
+  // Students can suggest a new study spot for an admin to approve.
+  const isStudent = currentUser?.role?.toLowerCase() === 'student'
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  const [activeFilter, setActiveFilter] = useState('All')
+  const [activeNav, setActiveNav] = useState(() => {
+    const nav = new URLSearchParams(window.location.search).get('nav')
+    return nav && NAV_TABS.includes(nav) ? nav : 'Home'
+  })
+  const requestUserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Location is not supported by your browser.')
+      return
+    }
+  
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        })
+  
+        setLocationError('')
+      },
+      () => {
+        setLocationError(
+          'Please allow location access to use Near Me.'
+        )
+      }
+    )
+  }
+  
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter)
+  
+    if (filter === 'Near Me' && !userLocation) {
+      requestUserLocation()
+    }
+  }
   const filteredSpots = useMemo(() => {
     const query = search.toLowerCase().trim()
 
-    if (!query) {
-      return STUDY_SPOTS
-    }
+    const matches = STUDY_SPOTS.filter((spot) => {
+      const accessType = spot.accessType.toLowerCase().replace(/[\s-]+/g, '_')
 
-    return STUDY_SPOTS.filter((spot) =>
-      [spot.name, spot.location, ...spot.tags].some((value) =>
-        value.toLowerCase().includes(query),
-      ),
-    )
-  }, [search])
+    const canAccess = !isGuest || accessType === 'public_access'
+      const matchesSearch = !query || [spot.name, spot.location, ...spot.tags].some((value) => value.toLowerCase().includes(query))
+      const matchesFilter = 
+      activeFilter === 'All' 
+      || (activeFilter === 'Quiet' && spot.noiseLevel === 'low') 
+      || (activeFilter === 'Open Now' && spot.open) 
+      || (activeFilter === 'Outlets' && spot.outlets === 'Available') 
+      // Crowdedness from the latest report: Available / Moderate / Crowded
+      || (activeFilter === 'Not Crowded' && spot.crowded === 'Available')
+      || (activeFilter === 'Has Printer' && spot.tags.includes('Printers'))
+      || activeFilter === 'Recently Updated'
+      || activeFilter === 'Near Me' &&
+      userLocation !== null &&
+      // user is within a 0.5 mile radius of the study spot
+      distanceInMiles(userLocation.lat, userLocation.lng, spot.latitude, spot.longitude) <= 0.5
+      return canAccess && matchesSearch && matchesFilter
+    })
+    // Most recently updated: newest report first ("YYYY-MM-DD HH:mm" sorts as text); spots with no reports last.
+    if (activeFilter === 'Recently Updated') {
+      const time = (updated: string) => (/^\d{4}-/.test(updated) ? updated : '')
+      return [...matches].sort((a, b) => time(b.updated).localeCompare(time(a.updated)))
+    }
+    return matches
+  }, [search, activeFilter, isGuest, userLocation])
 
   const navigateTo = (nav: string) => {
     setActiveNav(nav)
@@ -47,10 +115,13 @@ export default function MainLayout() {
         isLoggedIn={isLoggedIn}
         activeNav={activeNav}
         onNavChange={navigateTo}
-        onLoginToggle={() => setIsLoggedIn((value) => !value)}
+        onLoginToggle={() => {
+          window.location.href =`${window.studyFinderContext ?? ''}/login.jsp`
+        }}
       />
 
       <main className="px-6 pb-16">
+        <FlashBanner />
 
         {/* =========================
             HOME PAGE
@@ -59,9 +130,10 @@ export default function MainLayout() {
           <>
             <HeroSection isLoggedIn={isLoggedIn} />
 
-            {!locationDismissed && (
+            {showLocationBanner && (
               <LocationBanner
-                onDismiss={() => setLocationDismissed(true)}
+                onDismiss={() => setShowLocationBanner(false)}
+                onLocationChange={setUserLocation}
               />
             )}
 
@@ -75,7 +147,8 @@ export default function MainLayout() {
 
             {isLoggedIn && (
               <RewardsPreview
-                points={340}
+                points={window.studentPoints ?? 0}
+                redeemedRewardIds={window.redeemedRewardIds ?? []}
                 rewards={REWARDS}
                 onViewRewards={() => navigateTo('Rewards')}
               />
@@ -106,7 +179,7 @@ export default function MainLayout() {
                 </button>
               </div>
 
-              <SpotFilters filters={FILTERS} />
+              <SpotFilters filters={FILTERS} activeFilter={activeFilter} onFilterChange={handleFilterChange} />
 
               <div className="grid grid-cols-1 gap-4">
                 {filteredSpots.map((spot) => (
@@ -139,21 +212,29 @@ export default function MainLayout() {
         ========================== */}
         {activeNav === 'Find Spots' && (
           <section className="pt-8">
-            <div className="mb-6">
-              <h1 className="font-display text-3xl text-main mb-2">
-                Find Study Spots
-              </h1>
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h1 className="font-display text-3xl text-main mb-2">
+                  Find Study Spots
+                </h1>
 
-              <p className="text-sm text-muted">
-                Search and filter study spaces around the SJSU campus.
-              </p>
+                <p className="text-sm text-muted">
+                  Search and filter study spaces around the SJSU campus.
+                </p>
+              </div>
+              {isStudent && (
+                <button type="button" onClick={() => setSuggestOpen(true)} className="btn-secondary px-4 py-2 text-sm">
+                  Suggest a study spot
+                </button>
+              )}
             </div>
+            {suggestOpen && <SuggestSpotForm onClose={() => setSuggestOpen(false)} />}
 
-            {!locationDismissed && (
+            {/* {!locationDismissed && (
               <LocationBanner
                 onDismiss={() => setLocationDismissed(true)}
               />
-            )}
+            )} */}
 
             <SearchBar
               search={search}
@@ -162,7 +243,11 @@ export default function MainLayout() {
             />
 
             <div className="mt-5">
-              <SpotFilters filters={FILTERS} />
+            <SpotFilters filters={FILTERS} activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+            </div>
+
+            <div className='mt-6'>
+              <MapView spots={filteredSpots} userLocation={userLocation ?? undefined} activeFilter={activeFilter}/>
             </div>
 
             <div className="mt-6 mb-3 flex items-center justify-between">
@@ -223,7 +308,7 @@ export default function MainLayout() {
                   </p>
 
                   <p className="font-display text-4xl text-primary mt-1">
-                    340
+                    {window.studentPoints ?? 0}
                   </p>
 
                   <p className="text-xs text-muted mt-2">
@@ -233,8 +318,9 @@ export default function MainLayout() {
                 </div>
 
                 <RewardsPreview
-                  points={340}
+                  points={window.studentPoints ?? 0}
                   rewards={REWARDS}
+                  redeemedRewardIds={window.redeemedRewardIds ?? []}
                   onViewRewards={() => {}}
                 />
               </>

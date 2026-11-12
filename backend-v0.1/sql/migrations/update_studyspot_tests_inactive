@@ -1,0 +1,3 @@
+UPDATE study_spots
+SET is_active = 0
+WHERE spot_id IN (11,12,13,14,15,16,17,18);

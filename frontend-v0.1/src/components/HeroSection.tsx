@@ -18,10 +18,10 @@ export default function HeroSection({ isLoggedIn }: HeroSectionProps) {
             Discover quiet places <span>to </span>
             <span className="text-primary">study &amp; focus.</span>
           </h1>
-          <div className="flex gap-2">
+          {/* <div className="flex gap-2">
             <button className="btn-primary px-4 py-2">Log In</button>
             <button className="btn-secondary px-4 py-2">Continue as Guest</button>
-          </div>
+          </div> */}
         </>
       )}
     </section>

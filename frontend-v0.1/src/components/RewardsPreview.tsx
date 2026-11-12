@@ -3,14 +3,24 @@ import type { Reward } from '../model/StudySpot'
 type RewardsPreviewProps = {
   points: number
   rewards: Reward[]
+  redeemedRewardIds: number[]
   onViewRewards: () => void
 }
 
-export default function RewardsPreview({ points, rewards, onViewRewards }: RewardsPreviewProps) {
-  const nextReward = rewards[0]
-  const ptsToNext = nextReward.pts - points
+export default function RewardsPreview({ points, rewards, redeemedRewardIds, onViewRewards }: RewardsPreviewProps) {
+  // Remove rewards that the student has already redeemed.
+  const unredeemedRewards = rewards.filter((reward) => reward.id == null || !redeemedRewardIds.includes(reward.id))
+  // Ignore rewards that are out of stock.
+  const availableRewards = unredeemedRewards.filter((reward) => reward.stock == null || reward.stock > 0)
+  // Choose the cheapest reward the student can currently afford.
+  const affordableReward = availableRewards.find((reward) => points >= reward.pts)
+  const nextReward =affordableReward ??availableRewards[0] ?? {label: 'No rewards available',pts: 0,}
+  const canRedeem = affordableReward !== undefined
+  const rewardStatus = canRedeem ? 'Redeem:' : 'Next: Redeem'
+  const ptsToNext = canRedeem? 0: Math.max(nextReward.pts - points, 0)
   const progress = Math.min((points / nextReward.pts) * 100, 100)
-
+  
+  
   return (
     <section className="mb-8 primary-background rounded-2xl p-5 text-white relative overflow-hidden">
       <div className="absolute right-4 top-4 text-6xl opacity-10 select-none">🎓</div>
@@ -26,7 +36,9 @@ export default function RewardsPreview({ points, rewards, onViewRewards }: Rewar
 
       <div className="mb-3">
         <div className="flex justify-between text-xs text-white/70 mb-1.5">
-          <span>Next: {nextReward.label}</span>
+          {/* <span>Next: {nextReward.label}</span>
+          <span>{ptsToNext} pts away</span> */}
+          <span> {rewardStatus} {nextReward.label} </span>
           <span>{ptsToNext} pts away</span>
         </div>
         <div className="progress-track h-1.5">
@@ -36,10 +48,15 @@ export default function RewardsPreview({ points, rewards, onViewRewards }: Rewar
 
       <div className="flex gap-2">
         {rewards.map((reward) => (
-          <div key={reward.label} className="reward-background flex-1 rounded-xl p-2 text-center">
-            <span className="text-base">{reward.icon}</span>
+          <form key={reward.label} method="post" action={`${window.studyFinderContext ?? ''}/redeem.jsp`} className="reward-background flex-1 rounded-xl p-2 text-center">
+            <input type="hidden" name="rewardId" value={reward.id ?? ''} />
+            {/* using the reward's photo_path if it exists */}
+            {reward.img ? (<img src={reward.img} alt={reward.label}className="mx-auto h-16 w-16 rounded-lg object-cover"/>) : (
+              <span className="text-base">{reward.icon}</span>
+            )}
             <p className="text-[9px] text-white/70 mt-0.5">{reward.pts} pts</p>
-          </div>
+            <button type="submit" disabled={!reward.id || reward.stock === 0 || points < reward.pts} className="text-[10px] underline mt-1 disabled:opacity-40">Redeem</button>
+          </form>
         ))}
       </div>
     </section>

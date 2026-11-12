@@ -1,6 +1,7 @@
 import type { StudySpot } from '../model/StudySpot'
 import CrowdBar from './CrowdBar'
 import NoiseChip from './NoiseChip'
+import { spotDetailUrl } from '../utils/links'
 
 type SpotCardProps = {
   spot: StudySpot
@@ -9,9 +10,10 @@ type SpotCardProps = {
 
 export default function SpotCard({ spot }: SpotCardProps) {
   return (
+    <a href={spotDetailUrl(spot.id)} className="block">
     <article className="spot-card rounded-2xl">
       <div className="relative">
-        <img src={spot.img} alt={spot.name} className="spot-image" />
+      <img src={spot.img} alt={spot.name} className="spot-image" />
         <div className="absolute top-2 right-2">
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${spot.open ? 'badge-open' : 'badge-closed'}`}>
             {spot.open ? 'Open' : 'Closed'}
@@ -22,7 +24,13 @@ export default function SpotCard({ spot }: SpotCardProps) {
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-1">
           <h3 className="font-semibold text-main text-sm leading-tight">{spot.name}</h3>
-          <span className="text-xs text-secondary shrink-0">★ {spot.rating}</span>
+          {/* Combined rating (70% review stars + 30% report accuracy); count = reviews + accuracy ratings */}
+          <span
+            className="text-xs text-secondary shrink-0"
+            title={`${spot.reviewCount ?? 0} reviews, ${spot.ratingCount ?? 0} accuracy ratings`}
+          >
+            ★ {Number(spot.rating ?? 0).toFixed(1)} ({(spot.reviewCount ?? 0) + (spot.ratingCount ?? 0)})
+          </span>
         </div>
         <p className="text-xs text-muted mb-3">{spot.location}</p>
 
@@ -53,5 +61,6 @@ export default function SpotCard({ spot }: SpotCardProps) {
         </div>
       </div>
     </article>
+    </a>
   )
 }

@@ -111,3 +111,6 @@ body {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+
+.flash-error { background-color: var(--color-tag-red); color: #8c2418; }
+.flash-success { background-color: var(--color-tag-green); color: var(--color-primary); }
