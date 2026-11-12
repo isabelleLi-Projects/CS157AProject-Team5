@@ -27,8 +27,12 @@
         reportId = Integer.parseInt(request.getParameter("reportId"));
         latitude = Double.parseDouble(request.getParameter("latitude"));
         longitude = Double.parseDouble(request.getParameter("longitude"));
-    } catch (NumberFormatException exception) {
-        response.sendRedirect(context + "/study-spots.jsp?error=Spot+not+found");
+    } catch (NumberFormatException | NullPointerException exception) {
+        // A missing latitude/longitude makes parseDouble throw NullPointerException.
+        String id = request.getParameter("spotId");
+        response.sendRedirect(id != null && id.matches("\\d+")
+                ? context + "/study-spot.jsp?id=" + id + "&error=Turn+on+location+to+rate+this+spot"
+                : context + "/study-spots.jsp?error=Spot+not+found");
         return;
     }
     String back = context + "/study-spot.jsp?id=" + spotId;

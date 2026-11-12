@@ -142,9 +142,14 @@ public class AdminDashboardDAO {
     public List<Map<String, Object>> getBuildings() throws SQLException {
         List<Map<String, Object>> buildings = new ArrayList<>();
 
+        // photo_path: the newest photo of an existing spot in the same building, used to
+        // autofill the photo on the Add Study Spot form (buildings has no photo column).
         String sql =
-            "SELECT building_id, acronym " +
-            "FROM buildings ORDER BY acronym";
+            "SELECT b.building_id, b.acronym, " +
+            "(SELECT s.photo_path FROM study_spots s " +
+            " WHERE s.building_id = b.building_id AND s.photo_path IS NOT NULL AND s.photo_path <> '' " +
+            " ORDER BY s.created_at DESC, s.spot_id DESC LIMIT 1) AS photo_path " +
+            "FROM buildings b ORDER BY b.acronym";
 
         try (Connection con = DatabaseConnection.getConnection();
             PreparedStatement stmt = con.prepareStatement(sql);
@@ -154,9 +159,37 @@ public class AdminDashboardDAO {
                 Map<String, Object> building = new HashMap<>();
                 building.put("id", rs.getInt("building_id"));
                 building.put("name", rs.getString("acronym"));
+                building.put("photoPath", rs.getString("photo_path"));
                 buildings.add(building);
             }
         }
         return buildings;
+    }
+
+    /**
+     * Saved opening/closing times for every building, used to autofill the hours on the
+     * Add Study Spot form. Each row: buildingId, day ("Monday"...), opening/closing as "HH:mm".
+     */
+    public List<Map<String, Object>> getAllBuildingHours() throws SQLException {
+        return rows("SELECT building_id AS buildingId, day_of_week AS day, "
+                + "TIME_FORMAT(opening_time, '%H:%i') AS opening, TIME_FORMAT(closing_time, '%H:%i') AS closing "
+                + "FROM building_hours");
+    }
+
+    /**
+     * Newest photo of an existing spot in the building, or null if none. The server looks
+     * this up itself instead of trusting a file name sent by the browser.
+     */
+    public String getBuildingPhoto(int buildingId) throws SQLException {
+        String sql = "SELECT photo_path FROM study_spots "
+                + "WHERE building_id = ? AND photo_path IS NOT NULL AND photo_path <> '' "
+                + "ORDER BY created_at DESC, spot_id DESC LIMIT 1";
+        try (Connection con = DatabaseConnection.getConnection();
+                PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, buildingId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getString("photo_path") : null;
+            }
+        }
     }
 }

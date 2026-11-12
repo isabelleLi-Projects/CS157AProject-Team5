@@ -74,7 +74,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>StudyFinder Study Spots</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-B05CoEj-.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-4jkmnou7.css"></head>
 <body>
 <% if (databaseError != null) { %><p style="padding:1rem;color:#9b1c1c;"><%= databaseError %></p><% } %>
 <div id="root"></div>
@@ -86,6 +86,7 @@ window.flashMessage = "<%= js(request.getParameter("message")) %>";
 window.flashError = "<%= js(request.getParameter("error")) %>";
 window.adminMessage = "<%= js(request.getParameter("adminMessage")) %>";
 window.adminError = "<%= js(request.getParameter("adminError")) %>";
+window.adminTab = "<%= js(request.getParameter("adminTab")) %>";
 // admin 
 <% if (currentUser.isAdmin()) { %>
 window.adminDashboard = {
@@ -103,7 +104,11 @@ for (int i = 0; i < adminBuildings.size(); i++) {
 {
     id: <%= building.get("id") %>,
     acronym: "<%= js(String.valueOf(building.get("acronym"))) %>",
-    name: "<%= js(String.valueOf(building.get("name"))) %>"
+    name: "<%= js(String.valueOf(building.get("name"))) %>",
+    // photo of another spot in this building, for autofill ("" when there is none)
+    photoUrl: "<%= building.get("photoPath") == null ? "" : js(request.getContextPath() + "/assets/study_spots/" + building.get("photoPath")) %>",
+    // saved building_hours, e.g. Monday: ["07:00", "01:00"]
+    hours: {<% int d = 0; for (Map.Entry<?, ?> day : ((Map<?, ?>) building.get("hours")).entrySet()) { String[] times = (String[]) day.getValue(); %><%= d++ > 0 ? "," : "" %>"<%= js(String.valueOf(day.getKey())) %>":["<%= js(times[0]) %>","<%= js(times[1]) %>"]<% } %>}
 }<%= i + 1 < adminBuildings.size() ? "," : "" %>
 <%}%>]<% } %>;
 window.studySpots = [
@@ -152,5 +157,5 @@ window.reviews = [<% for (int i=0;i<reviews.size();i++) { Map<String,Object> row
 window.activityLogs = [<% for (int i=0;i<activityLogs.size();i++) { Map<String,Object> row=activityLogs.get(i); %>{userId:<%= row.get("user_id") %>,actionType:"<%= js((String) row.get("action_type")) %>",targetType:"<%= js((String) row.get("target_type")) %>",targetId:<%= row.get("target_id") == null ? "null" : row.get("target_id") %>}<%= i+1<activityLogs.size()?",":"" %><% } %>];
 window.verifications = [<% for (int i=0;i<verifications.size();i++) { Map<String,Object> row=verifications.get(i); %>{reportId:<%= row.get("report_id") %>,userId:<%= row.get("user_id") %>,result:"<%= js((String) row.get("result")) %>"}<%= i+1<verifications.size()?",":"" %><% } %>];
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-DNUZbf2J.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-BsNKYXVT.js"></script>
 </body></html>

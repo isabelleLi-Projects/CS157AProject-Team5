@@ -1,4 +1,5 @@
 import spartan from '../assets/logo/spartan.png'
+import ProfileMenu from './ProfileMenu'
 
 type HeaderProps = {
   isLoggedIn: boolean
@@ -15,13 +16,6 @@ export default function Header({
   onNavChange,
   onLoginToggle,
 }: HeaderProps) {
-  const logout = () => {
-    const form = document.createElement('form')
-    form.method = 'post'
-    form.action = `${window.studyFinderContext ?? ''}/logout.jsp`
-    document.body.appendChild(form)
-    form.submit()
-  }
   return (
     <nav className="surface-background standard-border sticky top-0 border-x-0 border-t-0" style={{zIndex: 1000,}}>
       <div className="px-6 h-14 flex items-center justify-between">
@@ -46,9 +40,14 @@ export default function Header({
           ))}
         </div>
 
-        <button onClick={isLoggedIn ? logout : onLoginToggle} className="btn-link text-base">
-          {isLoggedIn ? 'Log out' : 'Log in'}
-        </button>
+        {/* Logged in: profile icon with Edit profile / Log out. Guests: Log in link. */}
+        {isLoggedIn ? (
+          <ProfileMenu />
+        ) : (
+          <button onClick={onLoginToggle} className="btn-link text-base">
+            Log in
+          </button>
+        )}
       </div>
     </nav>
   )

@@ -68,6 +68,13 @@ public class AdminActionServlet extends HttpServlet {
                     + "/study-spots.jsp?adminMessage=Saved"
             );
 
+        } catch (IllegalArgumentException exception) {
+            // Bad form input (for example coordinates with too many decimals): go back with a message.
+            String message = exception instanceof NumberFormatException
+                    ? "Please enter whole numbers where a number is required."
+                    : exception.getMessage();
+            response.sendRedirect(request.getContextPath() + "/study-spots.jsp?adminTab=Add+Study+Spot&adminError="
+                    + java.net.URLEncoder.encode(message, java.nio.charset.StandardCharsets.UTF_8));
         } catch (Exception exception) {
             log("Administrator action failed", exception);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,exception.getMessage());
@@ -97,27 +104,19 @@ public class AdminActionServlet extends HttpServlet {
             buildingId = Integer.parseInt(buildingText);
         }
 
-        String coordinateText = request.getParameter("coordinates");
-
-        if (coordinateText == null || coordinateText.isBlank()) {
-            throw new IllegalArgumentException(
-                "Coordinates are required"
-            );
-        }
-
-        String[] coordinates = coordinateText.split(",");
-
-        if (coordinates.length != 2) {
-            throw new IllegalArgumentException("Use latitude, longitude");
-        }
-
-        double latitude = Double.parseDouble(coordinates[0].trim());
-
-        double longitude = Double.parseDouble(coordinates[1].trim());
+        // Checks the format and that each value has at most 6 decimal places (decimal(9,6)).
+        double[] coordinates = service.parseCoordinates(request.getParameter("coordinates"));
+        double latitude = coordinates[0];
+        double longitude = coordinates[1];
 
         Part photo = request.getPart("photo");
 
         String photoPath = savePhoto(photo, "study_spots");
+
+        // No new upload: reuse the photo of another spot in the same building, if the form asked for it.
+        if (photoPath == null && "1".equals(request.getParameter("useBuildingPhoto"))) {
+            photoPath = service.getBuildingPhoto(buildingId);
+        }
 
         service.addStudySpot(
             request.getParameter("spotName"),

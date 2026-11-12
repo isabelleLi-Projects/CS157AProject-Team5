@@ -62,7 +62,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= spot.getName().replace("<", "&lt;") %> | StudyFinder</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-B05CoEj-.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-4jkmnou7.css">
 </head>
 <body>
 <div id="root"></div>
@@ -106,6 +106,16 @@ document.addEventListener('submit', function (event) {
         return;
     }
     event.preventDefault();
+    // form.submit() below does not send the clicked button's name/value, so the
+    // Accurate/Inaccurate choice (name="result") would be lost. Copy it into a hidden input.
+    form.querySelector('input[data-submitter]')?.remove();
+    const submitter = event.submitter;
+    if (submitter && submitter.name) {
+        const choice = document.createElement('input');
+        choice.type = 'hidden'; choice.name = submitter.name; choice.value = submitter.value;
+        choice.setAttribute('data-submitter', '');
+        form.append(choice);
+    }
     if (!navigator.geolocation) {
         alert('Location is not supported by your browser.');
         return;
@@ -124,6 +134,6 @@ document.addEventListener('submit', function (event) {
     });
 });
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-DNUZbf2J.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-BsNKYXVT.js"></script>
 </body>
 </html>

@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import MapView from '../components/MapView'
 import { STUDY_SPOTS } from '../data/studySpots'
 import type { StudySpot } from '../model/StudySpot'
 import AdminHeader from '../components/AdminHeader'
 import AdminSidebar, { type AdminTab } from '../components/AdminSidebar'
-import EditProfile from '../components/EditProfile'
 import SpotForm from '../components/AdminSpotForm'
 import RewardForm from '../components/AdminRewardForm'
 
@@ -30,12 +29,17 @@ type AdminBuilding = {
   id: number
   acronym: string // doesn't dropdown display name 
   name: string
+  photoUrl?: string // photo of another spot in this building ("" if none)
+  hours?: Record<string, [string, string]> // saved building_hours, e.g. Monday: ["07:00", "01:00"]
 }
 
 declare global {
   interface Window {
     adminDashboard?: AdminDashboardData
     adminBuildings?: AdminBuilding[]
+    adminMessage?: string
+    adminError?: string
+    adminTab?: string
   }
 }
 
@@ -44,33 +48,27 @@ const emptyData: AdminDashboardData = { reports: [], reviews: [], activityLogs: 
 const tabs: AdminTab[] = ['Dashboard', 'Add Study Spot', 'Reported Students', 'Add Rewards', 'Reports', 'Reviews', 'All Users', 'Historical Trends']
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<AdminTab>('Dashboard')
-  const [profileOpen, setProfileOpen] = useState(false)
-  const [editProfileOpen, setEditProfileOpen] = useState(false)
+  // admin-action can send the admin back to a tab (for example after a form error)
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => tabs.find((tab) => tab === window.adminTab) ?? 'Dashboard')
   const data = useMemo(() => ({ ...emptyData, ...window.adminDashboard, studySpots: window.adminDashboard?.studySpots ?? STUDY_SPOTS }), [])
   const counts = { ...emptyData.counts, ...data.counts }
-  const profileRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function closeProfile(event: MouseEvent) {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) setProfileOpen(false)
-    }
-    document.addEventListener('mousedown', closeProfile)
-    return () => document.removeEventListener('mousedown', closeProfile)
-  }, [])
 
   return (
     <div className="app-background min-h-screen">
-      <AdminHeader profileOpen={profileOpen} setProfileOpen={setProfileOpen} profileRef={profileRef} onEditProfile={() => { setEditProfileOpen(true); setProfileOpen(false) }} />
+      <AdminHeader />
 
       <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[220px_minmax(0,1fr)]">
         <AdminSidebar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
         <main className="min-w-0">
+          {(window.adminError || window.adminMessage) && (
+            <p role={window.adminError ? 'alert' : 'status'} className={`mb-4 rounded-xl px-4 py-3 text-sm ${window.adminError ? 'flash-error' : 'flash-success'}`}>
+              {window.adminError || window.adminMessage}
+            </p>
+          )}
           {activeTab === 'Dashboard' ? <DashboardHome data={data} counts={counts} onNavigate={setActiveTab} /> : <AdminSection tab={activeTab} data={data} />}
         </main>
       </div>
-      {editProfileOpen && <EditProfile onClose={() => setEditProfileOpen(false)} />}
     </div>
   )
 }
