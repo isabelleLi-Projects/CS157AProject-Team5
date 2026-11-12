@@ -78,6 +78,24 @@ public class UserDAO {
         }
     }
 
+    /** Saves a new name, and a new password hash when passwordHash is not null. */
+    public void updateProfile(int userId, String fullName, String passwordHash) throws SQLException {
+        String sql = passwordHash == null
+                ? "UPDATE users SET full_name = ? WHERE user_id = ?"
+                : "UPDATE users SET full_name = ?, password_hash = ? WHERE user_id = ?";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, fullName);
+            if (passwordHash == null) {
+                stmt.setInt(2, userId);
+            } else {
+                stmt.setString(2, passwordHash);
+                stmt.setInt(3, userId);
+            }
+            stmt.executeUpdate();
+        }
+    }
+
     /** Creates the users and students rows together as one transaction. */
     public int createStudent(String fullName, String email, String passwordHash) throws SQLException {
         try (Connection con = DatabaseConnection.getConnection();

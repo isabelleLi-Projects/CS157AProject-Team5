@@ -38,6 +38,38 @@ public class AuthService {
         return sessionUser;
     }
 
+    /**
+     * Edit profile: changes the name, and the password when newPassword is filled in.
+     * Changing the password needs the current password.
+     *
+     * @throws IllegalArgumentException with a message to show the user
+     */
+    public void updateProfile(HttpServletRequest request, String fullName, String currentPassword,
+            String newPassword, String confirmPassword) throws Exception {
+        SessionUser current = AuthSession.current(request);
+        if (current == null || current.id() == null || current.isGuest()) {
+            throw new IllegalArgumentException("Log in to edit your profile.");
+        }
+        String normalizedName = AuthValidator.normalizeName(fullName);
+        String nameError = AuthValidator.nameProblem(normalizedName);
+        if (nameError != null) throw new IllegalArgumentException(nameError);
+
+        String newHash = null;
+        if (newPassword != null && !newPassword.isEmpty()) {
+            User user = userDAO.findByEmail(current.email());
+            if (user == null || !PasswordUtil.verify(currentPassword, user.getPasswordHash())) {
+                throw new IllegalArgumentException("Your current password is not correct.");
+            }
+            String passwordError = AuthValidator.passwordProblem(newPassword);
+            if (passwordError != null) throw new IllegalArgumentException(passwordError);
+            if (!newPassword.equals(confirmPassword)) throw new IllegalArgumentException("New passwords don't match.");
+            newHash = PasswordUtil.hash(newPassword);
+        }
+        userDAO.updateProfile(current.id(), normalizedName, newHash);
+        // Keep the header's name up to date.
+        AuthSession.start(request, new SessionUser(current.id(), normalizedName, current.email(), current.role()));
+    }
+
     public void beginSignup(HttpServletRequest request, String fullName, String email, String password) throws Exception {
         String normalizedName = AuthValidator.normalizeName(fullName);
         String normalizedEmail = AuthValidator.normalizeEmail(email);

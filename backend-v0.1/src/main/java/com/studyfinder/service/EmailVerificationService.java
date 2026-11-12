@@ -8,9 +8,26 @@ import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 
-/** Sends the one-time SJSU email signup code through the configured SMTP account. */
+/** Sends emails (signup codes, reward gifts) through the configured SMTP account. */
 public class EmailVerificationService {
     public void sendCode(String recipient, String code) throws Exception {
+        send(recipient, "Your SJSU Study Finder verification code",
+                "Your Study Finder verification code is: " + code
+                + "\n\nThis code expires in 10 minutes. If you did not request an account, ignore this email.");
+    }
+
+    /** Emails a student the gift they just redeemed. */
+    public void sendRewardGift(String recipient, String studentName, String rewardName, int pointsSpent,
+            String giftCode) throws Exception {
+        send(recipient, "Your SJSU Study Finder reward: " + rewardName,
+                "Hi " + studentName + ",\n\n"
+                + "Thanks for helping other students find study spots! You redeemed " + pointsSpent
+                + " points for a " + rewardName + ".\n\n"
+                + "Your gift code: " + giftCode + "\n\n"
+                + "Keep this email. If you have a problem with your reward, contact a Study Finder administrator.");
+    }
+
+    private void send(String recipient, String subject, String body) throws Exception {
         String host = required("STUDYFINDER_SMTP_HOST");
         String port = System.getenv().getOrDefault("STUDYFINDER_SMTP_PORT", "587");
         String username = required("STUDYFINDER_SMTP_USER");
@@ -32,9 +49,8 @@ public class EmailVerificationService {
         MimeMessage message = new MimeMessage(mailSession);
         message.setFrom(new InternetAddress(from));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient, false));
-        message.setSubject("Your SJSU Study Finder verification code");
-        message.setText("Your Study Finder verification code is: " + code
-                + "\n\nThis code expires in 10 minutes. If you did not request an account, ignore this email.");
+        message.setSubject(subject);
+        message.setText(body);
         Transport.send(message);
     }
 

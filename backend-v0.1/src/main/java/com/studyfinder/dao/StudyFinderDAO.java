@@ -62,8 +62,13 @@ public class StudyFinderDAO {
         }
     }
 
-    public void redeemReward(int userId, int rewardId) throws SQLException {
-        String rewardSql = "SELECT points_required AS point_cost, stock_quantity FROM rewards "
+    /**
+     * Redeems a reward in one transaction and logs the gift code in activity_logs.
+     *
+     * @return the reward's name and the points spent, for the gift email
+     */
+    public Object[] redeemReward(int userId, int rewardId, String giftCode) throws SQLException {
+        String rewardSql = "SELECT reward_name, points_required AS point_cost, stock_quantity FROM rewards "
                 + "WHERE reward_id = ? AND is_active = 1 FOR UPDATE";
         String pointsSql = "SELECT points FROM students WHERE user_id = ? FOR UPDATE";
         String updatePoints = "UPDATE students SET points = points - ? WHERE user_id = ?";
@@ -72,6 +77,9 @@ public class StudyFinderDAO {
         String insertRedemption = "INSERT INTO redeems "
                 + "(user_id, reward_id, points_spent, status, redeemed_at) "
                 + "VALUES (?, ?, ?, 'completed', CURRENT_TIMESTAMP)";
+        // Record the redemption and its gift code (the gift is emailed to the student).
+        String insertLog = "INSERT INTO activity_logs (user_id, action_type, target_type, target_id, details, created_at) "
+                + "VALUES (?, 'redeem_reward', 'reward', ?, ?, NOW())";
 
         try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
@@ -79,7 +87,8 @@ public class StudyFinderDAO {
                  PreparedStatement pointsStmt = con.prepareStatement(pointsSql);
                  PreparedStatement updatePointsStmt = con.prepareStatement(updatePoints);
                  PreparedStatement updateStockStmt = con.prepareStatement(updateStock);
-                 PreparedStatement redemptionStmt = con.prepareStatement(insertRedemption)) {
+                 PreparedStatement redemptionStmt = con.prepareStatement(insertRedemption);
+                 PreparedStatement logStmt = con.prepareStatement(insertLog)) {
                 rewardStmt.setInt(1, rewardId);
                 pointsStmt.setInt(1, userId);
                 try (ResultSet reward = rewardStmt.executeQuery(); ResultSet points = pointsStmt.executeQuery()) {
@@ -97,7 +106,13 @@ public class StudyFinderDAO {
                     redemptionStmt.setInt(2, rewardId);
                     redemptionStmt.setInt(3, cost);
                     redemptionStmt.executeUpdate();
+                    String rewardName = reward.getString("reward_name");
+                    logStmt.setInt(1, userId);
+                    logStmt.setInt(2, rewardId);
+                    logStmt.setString(3, "Redeemed " + rewardName + " for " + cost + " points. Gift code " + giftCode + ".");
+                    logStmt.executeUpdate();
                     con.commit();
+                    return new Object[] { rewardName, cost };
                 }
             } catch (SQLException exception) {
                 con.rollback();
