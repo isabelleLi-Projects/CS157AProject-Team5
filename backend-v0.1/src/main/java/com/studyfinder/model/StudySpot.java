@@ -20,6 +20,8 @@ public class StudySpot {
     private String updated;
     private final List<String> amenities = new ArrayList<>();
     private Boolean openNow;
+    private double averageRating;
+    private int reviewCount;
 
     public int getSpotId() {
         return spotId;
@@ -107,6 +109,11 @@ public class StudySpot {
     public void addAmenity(String amenity) { if (amenity != null && !amenity.isBlank()) amenities.add(amenity); }
     
     public Boolean getOpenNow() {return openNow;}
-    
     public void setOpenNow(Boolean openNow) {this.openNow = openNow;}
+
+    public double getAverageRating() { return averageRating; }
+    public void setAverageRating(double averageRating) { this.averageRating = averageRating; }
+    public int getReviewCount() { return reviewCount; }
+    public void setReviewCount(int reviewCount) { this.reviewCount = reviewCount; }
+
 }

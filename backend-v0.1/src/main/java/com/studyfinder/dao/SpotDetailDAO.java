@@ -28,7 +28,19 @@ public class SpotDetailDAO {
     public SpotDetail getSpotDetail(int spotId) throws SQLException {
         // Spot info joined with its building (full name + acronym). Only active spots.
         String spotSql = "SELECT s.spot_id, s.building_id, s.spot_name, s.location_details, "
-                + "s.description, s.capacity, s.access_type, s.photo_path, s.latitude, s.longitude, "
+                + "s.description, s.capacity, s.access_type, s.photo_path, "
+                + "s.latitude, s.longitude, "
+
+                + "(SELECT COALESCE(AVG(rv.rating), 0) "
+                + "FROM reviews rv "
+                + "WHERE rv.spot_id = s.spot_id "
+                + "AND rv.is_visible = 1) AS average_rating, "
+
+                + "(SELECT COUNT(rv.review_id) "
+                + "FROM reviews rv "
+                + "WHERE rv.spot_id = s.spot_id "
+                + "AND rv.is_visible = 1) AS review_count, "
+
                 + "b.building_name, b.acronym "
                 + "FROM study_spots s "
                 + "LEFT JOIN buildings b ON b.building_id = s.building_id "
@@ -91,6 +103,8 @@ public class SpotDetailDAO {
                     spot.setPhotoPath(rs.getString("photo_path"));
                     spot.setLatitude(rs.getDouble("latitude"));
                     spot.setLongitude(rs.getDouble("longitude"));
+                    spot.setAverageRating(rs.getDouble("average_rating"));
+                    spot.setReviewCount(rs.getInt("review_count"));
                     spot.setBuildingName(rs.getString("building_name"));
                     spot.setBuildingAcronym(rs.getString("acronym"));
                 }

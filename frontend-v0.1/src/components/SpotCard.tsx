@@ -24,7 +24,7 @@ export default function SpotCard({ spot }: SpotCardProps) {
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-1">
           <h3 className="font-semibold text-main text-sm leading-tight">{spot.name}</h3>
-          <span className="text-xs text-secondary shrink-0">★ {spot.rating}</span>
+          <span className="text-xs text-secondary shrink-0">★ {Number(spot.rating ?? 0).toFixed(1)} ({spot.reviewCount ?? 0})</span>
         </div>
         <p className="text-xs text-muted mb-3">{spot.location}</p>
 

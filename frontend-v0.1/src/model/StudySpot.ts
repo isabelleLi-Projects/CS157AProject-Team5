@@ -15,6 +15,7 @@ export interface StudySpot {
   outlets: string
   updated: string
   rating: number
+  reviewCount: number
   img: string
   tags: string[]
   open: boolean

@@ -49,6 +49,10 @@ public class SpotDetail {
     // The current student's rating of the latest report ("confirmed"/"disputed"), or null.
     private String currentUserRating;
 
+    // finding average rating and counting reviews
+    private double averageRating;
+    private int reviewCount;
+
     public int getSpotId() { return spotId; }
     public void setSpotId(int spotId) { this.spotId = spotId; }
     public int getBuildingId() { return buildingId; }
@@ -91,4 +95,19 @@ public class SpotDetail {
 
     /** The newest report for this spot, or null when nobody has reported yet. */
     public Report getLatestReport() { return recentReports.isEmpty() ? null : recentReports.get(0); }
+
+    // getters and setters for finding average rating and review count
+    public double getAverageRating() {
+        return averageRating;
+    }
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+    public int getReviewCount() {
+        return reviewCount;
+    }
+    public void setReviewCount(int reviewCount) {
+        this.reviewCount = reviewCount;
+    }
+
 }

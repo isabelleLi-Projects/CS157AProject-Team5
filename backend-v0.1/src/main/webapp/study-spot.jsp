@@ -74,6 +74,8 @@ window.flashError = "<%= js(request.getParameter("error")) %>";
 window.spotDetail = {
   spotId: <%= spot.getSpotId() %>,
   name: "<%= js(spot.getName()) %>",
+  rating:<%= spot.getAverageRating() %>,
+  reviewCount:<%= spot.getReviewCount() %>,
   buildingName: "<%= js(spot.getBuildingName()) %>",
   buildingAcronym: "<%= js(spot.getBuildingAcronym()) %>",
   locationDetails: "<%= js(spot.getLocationDetails()) %>",
@@ -134,6 +136,6 @@ document.addEventListener('submit', function (event) {
     });
 });
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-DZGEhGF3.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-CUdxXi90.js"></script>
 </body>
 </html>

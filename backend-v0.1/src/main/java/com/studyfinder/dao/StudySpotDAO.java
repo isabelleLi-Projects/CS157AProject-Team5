@@ -35,8 +35,18 @@ public class StudySpotDAO {
             + "COALESCE(CAST(r.outlets_available AS CHAR), 'Unknown') AS outlets, "
             + "COALESCE(DATE_FORMAT(r.created_at, '%Y-%m-%d %H:%i'), "
             + "'No reports') AS report_time, "
+            + "COALESCE(review_stats.average_rating, 0) AS average_rating,"
+            + "COALESCE(review_stats.review_count, 0) AS review_count, "
             + "GROUP_CONCAT(DISTINCT a.amenity_name SEPARATOR '||') AS amenities "
             + "FROM study_spots s "
+            + "LEFT JOIN ( "
+                +"SELECT spot_id, "
+                +"AVG(rating) AS average_rating, "
+                +"COUNT(*) AS review_count "
+                + "FROM reviews "
+                + "WHERE is_visible = 1 "
+                + "GROUP BY spot_id ) review_stats "
+            + "ON review_stats.spot_id = s.spot_id "
             + "LEFT JOIN buildings b ON b.building_id = s.building_id "
             + "LEFT JOIN building_hours bh ON bh.building_id = s.building_id AND bh.day_of_week = DAYNAME(NOW()) "
             + "LEFT JOIN reports r ON r.report_id = ("
@@ -44,7 +54,7 @@ public class StudySpotDAO {
                 + "WHERE r2.spot_id = s.spot_id AND NOT "
                 + AdminDashboardDAO.REPORT_HIDDEN.replace("r.report_id", "r2.report_id") + " "
                 + "ORDER BY r2.created_at DESC, r2.report_id DESC LIMIT 1) "
-            + "LEFT JOIN provides p ON p.spot_id = s.spot_id "
+                + "LEFT JOIN provides p ON p.spot_id = s.spot_id "
             + "LEFT JOIN amenities a ON a.amenity_id = p.amenity_id "
             + "AND a.is_active = 1 "
             + "WHERE s.is_active = 1 "
@@ -52,7 +62,7 @@ public class StudySpotDAO {
             + "bh.opening_time, bh.closing_time, "
             + "s.location_details, s.capacity, s.latitude, s.longitude, "
             + "s.is_active, s.access_type, s.photo_path, "
-            + "r.noise_level, r.crowdedness, r.outlets_available, r.created_at "
+            + "r.noise_level, r.crowdedness, r.outlets_available, r.created_at, review_stats.average_rating, review_stats.review_count "
             + "ORDER BY s.spot_name";
         
         try (Connection con = DatabaseConnection.getConnection();
@@ -69,6 +79,8 @@ public class StudySpotDAO {
                 spot.setCapacity(rs.getInt("capacity"));
                 spot.setLatitude(rs.getDouble("latitude"));
                 spot.setLongitude(rs.getDouble("longitude"));
+                spot.setAverageRating(rs.getDouble("average_rating"));
+                spot.setReviewCount(rs.getInt("review_count"));
                 spot.setActive(rs.getInt("is_active") == 1);
                 spot.setAccessType(rs.getString("access_type"));
                 spot.setPhotoPath(rs.getString("photo_path"));
@@ -77,18 +89,16 @@ public class StudySpotDAO {
                 spot.setOutlets(rs.getString("outlets"));
                 spot.setUpdated(rs.getString("report_time"));
                 spot.setOpenNow(rs.getBoolean("open_now"));
+                
 
 
                 String amenities = rs.getString("amenities");
                 if (amenities != null) {
                     for (String amenity : amenities.split("\\|\\|")) spot.addAmenity(amenity);
                 }
-            
                 studySpots.add(spot);
             }
-
         }
-
         return studySpots;
     }
 
