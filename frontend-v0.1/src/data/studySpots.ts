@@ -68,7 +68,9 @@ export const RECENT_SPOTS = STUDY_SPOTS.slice(0, 2)
 
 export const REWARDS: Reward[] = (window.rewards ?? []).map((reward) => ({ ...reward, icon: '🎁' }))
 
-export const FILTERS = ['All', 'Quiet', 'Open Now', 'Near Me', 'Outlets']
+// Not Crowded = latest report says "Available"; Has Printer = Printers amenity;
+// Recently Updated = every spot, newest report first.
+export const FILTERS = ['All', 'Quiet', 'Not Crowded', 'Open Now', 'Near Me', 'Outlets', 'Has Printer', 'Recently Updated']
 
 //temp code
 console.log('Database study spots:', window.studySpots)

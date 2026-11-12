@@ -71,7 +71,7 @@ export default function MainLayout() {
   const filteredSpots = useMemo(() => {
     const query = search.toLowerCase().trim()
 
-    return STUDY_SPOTS.filter((spot) => {
+    const matches = STUDY_SPOTS.filter((spot) => {
       const accessType = spot.accessType.toLowerCase().replace(/[\s-]+/g, '_')
 
     const canAccess = !isGuest || accessType === 'public_access'
@@ -81,12 +81,22 @@ export default function MainLayout() {
       || (activeFilter === 'Quiet' && spot.noiseLevel === 'low') 
       || (activeFilter === 'Open Now' && spot.open) 
       || (activeFilter === 'Outlets' && spot.outlets === 'Available') 
+      // Crowdedness from the latest report: Available / Moderate / Crowded
+      || (activeFilter === 'Not Crowded' && spot.crowded === 'Available')
+      || (activeFilter === 'Has Printer' && spot.tags.includes('Printers'))
+      || activeFilter === 'Recently Updated'
       || activeFilter === 'Near Me' &&
       userLocation !== null &&
       // user is within a 0.5 mile radius of the study spot
       distanceInMiles(userLocation.lat, userLocation.lng, spot.latitude, spot.longitude) <= 0.5
       return canAccess && matchesSearch && matchesFilter
     })
+    // Most recently updated: newest report first ("YYYY-MM-DD HH:mm" sorts as text); spots with no reports last.
+    if (activeFilter === 'Recently Updated') {
+      const time = (updated: string) => (/^\d{4}-/.test(updated) ? updated : '')
+      return [...matches].sort((a, b) => time(b.updated).localeCompare(time(a.updated)))
+    }
+    return matches
   }, [search, activeFilter, isGuest, userLocation])
 
   const navigateTo = (nav: string) => {
