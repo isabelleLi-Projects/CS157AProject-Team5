@@ -50,6 +50,14 @@ export default function ProfileMenu() {
         <div className="surface-background standard-border absolute right-0 top-12 z-20 w-56 rounded-xl p-2 shadow-lg">
           <p className="px-3 py-2 text-sm font-semibold text-main">{name}</p>
           <p className="px-3 pb-2 text-xs text-muted">{currentUser?.email ?? ''}</p>
+          {currentUser?.role?.toLowerCase() === 'student' && (
+            <a
+              href={`${window.studyFinderContext ?? ''}/history.jsp`}
+              className="block w-full rounded-lg px-3 py-2 text-left text-sm text-secondary hover:bg-[#f7f4ef]"
+            >
+              My history
+            </a>
+          )}
           <button
             type="button"
             className="w-full rounded-lg px-3 py-2 text-left text-sm text-secondary hover:bg-[#f7f4ef]"

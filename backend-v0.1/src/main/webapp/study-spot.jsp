@@ -62,7 +62,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= spot.getName().replace("<", "&lt;") %> | StudyFinder</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-TnHXE_J8.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-6hFF44YQ.css">
 </head>
 <body>
 <div id="root"></div>
@@ -134,6 +134,6 @@ document.addEventListener('submit', function (event) {
     });
 });
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-BG4qfqeS.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-Cyt1CRvT.js"></script>
 </body>
 </html>
