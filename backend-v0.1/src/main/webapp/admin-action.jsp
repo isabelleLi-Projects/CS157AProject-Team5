@@ -30,7 +30,8 @@
                 ),
                 Integer.parseInt(
                     request.getParameter("stockQuantity")
-                )
+                ),
+                request.getParameter("photoPath")
             );
 
         } else if ("addSpot".equals(action)) {
