@@ -74,6 +74,8 @@ window.flashError = "<%= js(request.getParameter("error")) %>";
 window.spotDetail = {
   spotId: <%= spot.getSpotId() %>,
   name: "<%= js(spot.getName()) %>",
+  rating:<%= spot.getAverageRating() %>,
+  reviewCount:<%= spot.getReviewCount() %>,
   buildingName: "<%= js(spot.getBuildingName()) %>",
   buildingAcronym: "<%= js(spot.getBuildingAcronym()) %>",
   locationDetails: "<%= js(spot.getLocationDetails()) %>",

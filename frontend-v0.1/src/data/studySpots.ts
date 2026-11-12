@@ -18,6 +18,8 @@ type DatabaseStudySpot = {
   crowdedness?: string
   outlets?: string
   updated?: string
+  rating?: number
+  reviewCount?: number
   amenities?: string[]
 }
 
@@ -55,7 +57,8 @@ export const STUDY_SPOTS: StudySpot[] = (window.studySpots ?? []).map(
     crowdLevel: level(spot.crowdedness),
     outlets: spot.outlets === '1' ? 'Available' : spot.outlets === '0' ? 'None' : (spot.outlets ?? 'Unknown'),
     updated: spot.updated ?? 'No reports',
-    rating: 0,
+    rating: Number(spot.rating ?? 0),
+    reviewCount: Number(spot.reviewCount ?? 0),
     img: spot.img ?? '',
     tags: [spot.accessType, ...(spot.amenities ?? [])].filter(Boolean),
     building: spot.building,

@@ -105,7 +105,8 @@ window.adminDashboard = {
   counts: { activeSpots:<%= adminCounts.getOrDefault("activeSpots", 0) %>, reports:<%= adminCounts.getOrDefault("reports", 0) %>, reviews:<%= adminCounts.getOrDefault("reviews", 0) %>, users:<%= adminCounts.getOrDefault("users", 0) %>, redemptions:<%= adminCounts.getOrDefault("redemptions", 0) %> },
   spotClicks: [<% for (int i=0;i<adminSpotClicks.size();i++) { Map<String,Object> row=adminSpotClicks.get(i); %>{spot:"<%= js(String.valueOf(row.get("spot"))) %>",clicks:<%= row.get("clicks") %>}<%= i+1<adminSpotClicks.size()?",":"" %><% } %>],
   reports: <%= adminRows(adminReports) %>, reviews: <%= adminRows(adminReviews) %>, activityLogs: <%= adminRows(adminActivity) %>, recentRedemptions: <%= adminRows(adminRedemptions) %>, users: <%= adminRows(adminUsers) %>, spots: <%= adminRows(adminSpots) %>, suggestions: <%= adminRows(adminSuggestions) %>,
-  studySpots: [<% for (int i=0;i<studySpots.size();i++) { StudySpot spot=studySpots.get(i); %>{id:<%=spot.getSpotId()%>,name:"<%=js(spot.getName())%>",location:"<%=js(spot.getLocation())%>",latitude:<%=spot.getLatitude()%>,longitude:<%=spot.getLongitude()%>,accessType:"<%=js(spot.getAccessType())%>",noise:"<%=js(spot.getNoise())%>",noiseLevel:"low",crowded:"<%=js(spot.getCrowdedness())%>",crowdLevel:"low",outlets:"<%=js(spot.getOutlets())%>",updated:"<%=js(spot.getUpdated())%>",rating:0,img:"",tags:[],open:<%=spot.getOpenNow()==null?"null":spot.getOpenNow()%>,building:"<%=js(spot.getBuilding())%>",capacity:<%=spot.getCapacity()%>}<%=i+1<studySpots.size()?",":""%><% } %>]
+  studySpots: [<% for (int i=0;i<studySpots.size();i++) { StudySpot spot=studySpots.get(i); %>{id:<%=spot.getSpotId()%>,name:"<%=js(spot.getName())%>",location:"<%=js(spot.getLocation())%>",latitude:<%=spot.getLatitude()%>,longitude:<%=spot.getLongitude()%>,accessType:"<%=js(spot.getAccessType())%>",noise:"<%=js(spot.getNoise())%>",noiseLevel:"low",crowded:"<%=js(spot.getCrowdedness())%>",crowdLevel:"low",outlets:"<%=js(spot.getOutlets())%>",updated:"<%=js(spot.getUpdated())%>",
+  rating:<%= spot.getAverageRating() %>, reviewCount:<%= spot.getReviewCount() %>, img:"",tags:[],open:<%=spot.getOpenNow()==null?"null":spot.getOpenNow()%>,building:"<%=js(spot.getBuilding())%>",capacity:<%=spot.getCapacity()%>}<%=i+1<studySpots.size()?",":""%><% } %>]
 };
 // provides a dicionary like this 1:BBC, 2:KING
 window.adminBuildings = [
@@ -141,6 +142,8 @@ window.studySpots = [
   open:<%= spot.getOpenNow() == null ? "null" : spot.getOpenNow() %>,
   capacity:<%= spot.getCapacity() %>,
   latitude:<%= spot.getLatitude() %>,
+  rating:<%= spot.getAverageRating() %>,
+  reviewCount:<%= spot.getReviewCount() %>,
   longitude:<%= spot.getLongitude() %>,
   accessType:"<%= js(spot.getAccessType()) %>",
   photoPath:"<%= js(spot.getPhotoPath()) %>",
