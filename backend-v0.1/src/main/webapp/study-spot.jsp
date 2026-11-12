@@ -54,6 +54,23 @@
         imageUrl = request.getContextPath() + "/assets/study_spots/" + spot.getPhotoPath();
     }
     SpotDetail.Report latest = spot.getLatestReport();
+    // Combined rating and typical conditions by time of day.
+    com.studyfinder.service.SpotRatingService ratingService = new com.studyfinder.service.SpotRatingService();
+    com.studyfinder.service.SpotRatingService.Rating overall = null;
+    List<com.studyfinder.service.SpotRatingService.TimeOfDay> timeOfDay = List.of();
+    try {
+        overall = ratingService.getRating(spotId);
+        timeOfDay = ratingService.getTimeOfDay(spotId);
+    } catch (SQLException exception) {
+        log("Unable to load rating for spot " + spotId, exception);
+    }
+    // Student photos (needs sql/migrations/add_spot_photos.sql).
+    List<java.util.Map<String, Object>> photos = List.of();
+    try {
+        photos = new com.studyfinder.service.SpotPhotoService().getVisiblePhotos(spotId);
+    } catch (SQLException exception) {
+        log("Unable to load photos for spot " + spotId, exception);
+    }
     List<SpotDetail.Report> reports = spot.getRecentReports();
 %>
 <!DOCTYPE html>
@@ -62,7 +79,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= spot.getName().replace("<", "&lt;") %> | StudyFinder</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-6hFF44YQ.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-D29Bf_X6.css">
 </head>
 <body>
 <div id="root"></div>
@@ -94,17 +111,20 @@ window.spotDetail = {
   ],
   reviews: [
     <% for (int i = 0; i < spot.getReviews().size(); i++) { SpotDetail.Review rv = spot.getReviews().get(i); %>
-    { firstName: "<%= js(rv.firstName()) %>", rating: <%= rv.rating() %>, text: "<%= js(rv.text()) %>", createdAt: "<%= js(rv.createdAt()) %>" }<%= i + 1 < spot.getReviews().size() ? "," : "" %>
+    { reviewId: <%= rv.reviewId() %>, mine: <%= currentUser.id() != null && rv.userId() == currentUser.id() %>, firstName: "<%= js(rv.firstName()) %>", rating: <%= rv.rating() %>, text: "<%= js(rv.text()) %>", createdAt: "<%= js(rv.createdAt()) %>" }<%= i + 1 < spot.getReviews().size() ? "," : "" %>
     <% } %>
   ],
   currentUserRating: <%= jsOrNull(spot.getCurrentUserRating()) %>,
+  overall: <% if (overall == null) { %>null<% } else { %>{ score: <%= overall.overall() == null ? "null" : overall.overall() %>, avgStars: <%= overall.avgStars() %>, reviewCount: <%= overall.reviewCount() %>, accuracyPercent: <%= overall.accuracyPercent() == null ? "null" : overall.accuracyPercent() %>, ratingCount: <%= overall.ratingCount() %> }<% } %>,
+  photos: [<% for (int i = 0; i < photos.size(); i++) { java.util.Map<String, Object> p = photos.get(i); %>{ url: "<%= js(request.getContextPath() + "/assets/spot_photos/" + p.get("photoPath")) %>", firstName: "<%= js(String.valueOf(p.get("firstName"))) %>", uploadedAt: "<%= js(String.valueOf(p.get("uploadedAt"))) %>" }<%= i + 1 < photos.size() ? "," : "" %><% } %>],
+  timeOfDay: [<% for (int i = 0; i < timeOfDay.size(); i++) { com.studyfinder.service.SpotRatingService.TimeOfDay block = timeOfDay.get(i); %>{ block: "<%= js(block.block()) %>", reports: <%= block.reports() %>, noise: "<%= js(block.noise()) %>", crowdedness: "<%= js(block.crowdedness()) %>" }<%= i + 1 < timeOfDay.size() ? "," : "" %><% } %>],
   isOwnLatestReport: <%= latest != null && currentUser.id() != null && latest.authorId() == currentUser.id() %>
 };
 </script>
 <script>
 document.addEventListener('submit', function (event) {
     const form = event.target;
-    if (!(form instanceof HTMLFormElement)|| (!form.action.includes("review-spot.jsp") && !form.action.includes("report-spot.jsp") && !form.action.includes("rate-spot.jsp"))) {
+    if (!(form instanceof HTMLFormElement)|| (!form.action.includes("review-spot.jsp") && !form.action.includes("report-spot.jsp") && !form.action.includes("rate-spot.jsp") && !form.action.includes("upload-photo.jsp"))) {
         return;
     }
     event.preventDefault();
@@ -136,6 +156,6 @@ document.addEventListener('submit', function (event) {
     });
 });
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-C1_wAM6y.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-B_a3fuMC.js"></script>
 </body>
 </html>

@@ -234,6 +234,8 @@ public class AdminDashboardDAO {
             case "spot" -> change = "UPDATE study_spots SET is_active = ? WHERE spot_id = ? "
                     + "AND (suggestion_status IS NULL OR suggestion_status = 'approved')";
             case "review" -> change = "UPDATE reviews SET is_visible = ? WHERE review_id = ?";
+            // Student photos: hide or show (spot_photos.is_visible).
+            case "photo" -> change = "UPDATE spot_photos SET is_visible = ? WHERE photo_id = ?";
             // Reports: add a moderates row; the newest one decides if the report is hidden.
             case "report" -> change = "INSERT INTO moderates (administrator_id, report_id, action, reason, created_at) "
                     + "SELECT ?, report_id, ?, ?, NOW() FROM reports WHERE report_id = ?";
@@ -249,7 +251,7 @@ public class AdminDashboardDAO {
             try {
                 switch (type) {
                     case "student" -> { changeStmt.setString(1, active ? "active" : "inactive"); changeStmt.setInt(2, id); }
-                    case "spot", "review" -> { changeStmt.setInt(1, active ? 1 : 0); changeStmt.setInt(2, id); }
+                    case "spot", "review", "photo" -> { changeStmt.setInt(1, active ? 1 : 0); changeStmt.setInt(2, id); }
                     default -> {
                         changeStmt.setInt(1, adminId);
                         changeStmt.setString(2, active ? "restored" : "hidden");

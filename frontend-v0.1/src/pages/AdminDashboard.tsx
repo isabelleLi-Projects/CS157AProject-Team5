@@ -6,6 +6,7 @@ import AdminHeader from '../components/AdminHeader'
 import AdminSidebar, { type AdminTab } from '../components/AdminSidebar'
 import SpotForm from '../components/AdminSpotForm'
 import RewardForm from '../components/AdminRewardForm'
+import AdminTrends, { type Trends } from '../components/AdminTrends'
 
 type AdminRow = {
   id: number
@@ -15,10 +16,11 @@ type AdminRow = {
   meta?: string
   active?: boolean // present when the admin can make this row active/inactive
   details?: string // extra line shown under a row (Suggested Spots)
+  img?: string // photo file name (Student Photos)
 }
 
 // What a Deactivate/Reactivate button changes, and which tab to come back to.
-type ToggleTarget = { type: 'student' | 'spot' | 'review' | 'report'; tab: AdminTab }
+type ToggleTarget = { type: 'student' | 'spot' | 'review' | 'report' | 'photo'; tab: AdminTab }
 
 type AdminDashboardData = {
   spotClicks?: Array<{ spot: string; clicks: number }>
@@ -29,6 +31,8 @@ type AdminDashboardData = {
   users?: AdminRow[]
   spots?: AdminRow[]
   suggestions?: AdminRow[]
+  photos?: AdminRow[]
+  trends?: Trends
   studySpots?: StudySpot[]
   counts?: { reports?: number; reviews?: number; users?: number; activeSpots?: number; redemptions?: number }
 }
@@ -52,7 +56,7 @@ declare global {
 
 const emptyData: AdminDashboardData = { reports: [], reviews: [], activityLogs: [], recentRedemptions: [], counts: {} }
 
-const tabs: AdminTab[] = ['Dashboard', 'Add Study Spot', 'Suggested Spots', 'Reported Students', 'Add Rewards', 'Reports', 'Reviews', 'All Users', 'Historical Trends']
+const tabs: AdminTab[] = ['Dashboard', 'Add Study Spot', 'Suggested Spots', 'Student Photos', 'Reported Students', 'Add Rewards', 'Reports', 'Reviews', 'All Users', 'Historical Trends']
 
 export default function AdminDashboard() {
   // admin-action can send the admin back to a tab (for example after a form error)
@@ -138,6 +142,43 @@ function ActivityList({ rows, showStatus = false, toggle }: { rows: AdminRow[]; 
   return <div className="divide-y divide-[#e2ddd5]">{rows.map((row) => <div key={`${row.id}-${row.label}`} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"><div className="min-w-0"><p className={`truncate text-sm font-medium ${row.active === false ? 'text-muted line-through' : 'text-main'}`}>{row.label}</p><p className="truncate text-xs text-muted">{row.secondary} · {row.meta}</p></div><div className="flex shrink-0 items-center gap-2">{showStatus && row.status && <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${row.active === false ? 'bg-[#f6dcd7] text-[#8c2418]' : 'bg-[#d1ead9] text-[#2d5a3d]'}`}>{row.status}</span>}{toggle && row.active !== undefined && <ActiveToggle row={row} target={toggle} />}</div></div>)}</div>
 }
 
+// Photos students added, with Hide / Show.
+function PhotoList({ rows }: { rows: AdminRow[] }) {
+  if (!rows.length) return <EmptyState title="No photos yet" text="When a student adds a photo to a study spot, it shows up here." />
+  return (
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+      {rows.map((row) => (
+        <div key={row.id} className={`rounded-xl border border-[#e2ddd5] p-2 ${row.active === false ? 'opacity-60' : ''}`}>
+          <a href={`${window.studyFinderContext ?? ''}/assets/spot_photos/${row.img}`} target="_blank" rel="noopener noreferrer">
+            <img src={`${window.studyFinderContext ?? ''}/assets/spot_photos/${row.img}`} alt={`Photo of ${row.label}`} className="aspect-square w-full rounded-lg object-cover" loading="lazy" />
+          </a>
+          <p className="mt-2 truncate text-sm font-medium text-main">{row.label}</p>
+          <p className="truncate text-xs text-muted">{row.secondary} · {row.meta}</p>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${row.active === false ? 'bg-[#f6dcd7] text-[#8c2418]' : 'bg-[#d1ead9] text-[#2d5a3d]'}`}>{row.status}</span>
+            <PhotoToggle row={row} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function PhotoToggle({ row }: { row: AdminRow }) {
+  return (
+    <form method="post" action={`${window.studyFinderContext ?? ''}/admin-action`}>
+      <input type="hidden" name="action" value="setActive" />
+      <input type="hidden" name="type" value="photo" />
+      <input type="hidden" name="id" value={row.id} />
+      <input type="hidden" name="active" value={row.active ? '0' : '1'} />
+      <input type="hidden" name="returnTab" value="Student Photos" />
+      <button type="submit" className={`${row.active ? 'btn-secondary' : 'btn-primary'} px-3 py-1 text-xs`}>
+        {row.active ? 'Hide' : 'Show'}
+      </button>
+    </form>
+  )
+}
+
 // Student suggestions waiting for review, with Approve (spot goes live, student +15 points) and Reject (stays hidden).
 function SuggestionList({ rows }: { rows: AdminRow[] }) {
   if (!rows.length) return <EmptyState title="No suggestions to review" text="When a student suggests a study spot, it shows up here." />
@@ -196,9 +237,12 @@ function EmptyState({ title, text }: { title: string; text: string }) {
 }
 
 function AdminSection({ tab, data }: { tab: AdminTab; data: AdminDashboardData }) {
-  const titles: Record<AdminTab, string> = { Dashboard: 'Dashboard', 'Add Study Spot': 'Manage study spots', 'Suggested Spots': 'Spots suggested by students', 'Reported Students': 'Reported students', 'Add Rewards': 'Manage rewards', Reports: 'Reports', Reviews: 'Reviews', 'All Users': 'All users', 'Historical Trends': 'Historical trends' }
+  const titles: Record<AdminTab, string> = { Dashboard: 'Dashboard', 'Add Study Spot': 'Manage study spots', 'Suggested Spots': 'Spots suggested by students', 'Student Photos': 'Photos added by students', 'Reported Students': 'Reported students', 'Add Rewards': 'Manage rewards', Reports: 'Reports', Reviews: 'Reviews', 'All Users': 'All users', 'Historical Trends': 'Historical trends' }
   const rows = tab === 'Reports' ? data.reports : tab === 'Reviews' ? data.reviews : tab === 'Reported Students' ? data.activityLogs : tab === 'All Users' ? data.users : []
+  if (tab === 'Historical Trends') {
+    return <section><div className="mb-6"><p className="text-sm text-muted">Administration</p><h1 className="font-display text-3xl text-main">{titles[tab]}</h1></div><AdminTrends trends={data.trends} /></section>
+  }
   // Tabs whose rows can be made active/inactive.
   const toggle: ToggleTarget | undefined = tab === 'Reports' ? { type: 'report', tab } : tab === 'Reviews' ? { type: 'review', tab } : tab === 'All Users' ? { type: 'student', tab } : undefined
-  return <section><div className="mb-6"><p className="text-sm text-muted">Administration</p><h1 className="font-display text-3xl text-main">{titles[tab]}</h1></div><div className="surface-background standard-border rounded-2xl p-5">{tab === 'Add Study Spot' ? <SpotForm /> : tab === 'Suggested Spots' ? <SuggestionList rows={data.suggestions ?? []} /> : tab === 'Add Rewards' ? <RewardForm /> : tab === 'Historical Trends' ? <EmptyState title="Historical trends" text="Charts will use preserved reports and the future study_spot_views table." /> : <ActivityList rows={rows ?? []} showStatus toggle={toggle} />}</div>{tab === 'Add Study Spot' && <div className="surface-background standard-border mt-6 rounded-2xl p-5"><h2 className="mb-4 font-display text-xl text-main">Existing study spots</h2><ActivityList rows={data.spots ?? []} showStatus toggle={{ type: 'spot', tab }} /></div>}</section>
+  return <section><div className="mb-6"><p className="text-sm text-muted">Administration</p><h1 className="font-display text-3xl text-main">{titles[tab]}</h1></div><div className="surface-background standard-border rounded-2xl p-5">{tab === 'Add Study Spot' ? <SpotForm /> : tab === 'Suggested Spots' ? <SuggestionList rows={data.suggestions ?? []} /> : tab === 'Student Photos' ? <PhotoList rows={data.photos ?? []} /> : tab === 'Add Rewards' ? <RewardForm /> : <ActivityList rows={rows ?? []} showStatus toggle={toggle} />}</div>{tab === 'Add Study Spot' && <div className="surface-background standard-border mt-6 rounded-2xl p-5"><h2 className="mb-4 font-display text-xl text-main">Existing study spots</h2><ActivityList rows={data.spots ?? []} showStatus toggle={{ type: 'spot', tab }} /></div>}</section>
 }

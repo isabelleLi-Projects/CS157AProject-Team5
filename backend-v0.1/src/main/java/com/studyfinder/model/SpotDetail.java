@@ -19,8 +19,8 @@ public class SpotDetail {
                          String createdAt, long minutesAgo, int confirmed, int disputed) {
     }
 
-    /** One visible row from reviews JOIN users. */
-    public record Review(String firstName, int rating, String text, String createdAt) {
+    /** One visible row from reviews JOIN users. userId lets the page show Edit/Delete on your own review. */
+    public record Review(int reviewId, int userId, String firstName, int rating, String text, String createdAt) {
     }
 
     private int spotId;

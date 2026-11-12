@@ -67,7 +67,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>My history | StudyFinder</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-6hFF44YQ.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-D29Bf_X6.css">
 </head>
 <body>
 <div id="root"></div>
@@ -85,6 +85,6 @@ window.studentHistory = {
   suggestions: <%= jsRows(suggestions) %>
 };
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-C1_wAM6y.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-B_a3fuMC.js"></script>
 </body>
 </html>

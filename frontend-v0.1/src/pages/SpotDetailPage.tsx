@@ -3,7 +3,7 @@ import Header from '../components/Header'
 import FlashBanner from '../components/FlashBanner'
 import NoiseChip from '../components/NoiseChip'
 import SpotDetailMap from '../components/SpotDetailMap'
-import type { SpotDetail, SpotReport } from '../model/SpotDetail'
+import type { SpotDetail, SpotReport, SpotReview } from '../model/SpotDetail'
 import type { UserLocation } from '../model/StudySpot'
 import { distanceInMiles } from '../utils/distance'
 import { mainPageUrl, walkingDirectionsUrl } from '../utils/links'
@@ -118,6 +118,7 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                   </div>
                   <OpenBadge openNow={spot.hours.openNow} />
                 </div>
+                <OverallRating overall={spot.overall} />
                 {spot.description && <p className="text-sm text-main mt-3 leading-relaxed">{spot.description}</p>}
                 <div className="flex flex-wrap gap-2 mt-4">
                   <Tag>{spot.accessType}</Tag>
@@ -175,12 +176,31 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                 </ul>
               </Card>
             )}
+            <Card title="Photos from students">
+              {spot.photos && spot.photos.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {spot.photos.map((photo) => (
+                    <a key={photo.url} href={photo.url} target="_blank" rel="noopener noreferrer" className="group block">
+                      <img src={photo.url} alt={`Photo of ${spot.name} by ${photo.firstName}`} className="aspect-square w-full rounded-lg object-cover" loading="lazy" />
+                      <p className="mt-1 text-[11px] text-muted">
+                        {photo.firstName} · {photo.uploadedAt}
+                      </p>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">No photos yet.</p>
+              )}
+              <AddPhotoForm spotId={spot.spotId} role={role} locked={tooFar} />
+            </Card>
+
             <Card title="Reviews">
               {spot.reviews.length > 0 ? (
                 <>
                   <ul className="space-y-3">
-                    {spot.reviews.slice(0, 3).map((review, index) => (
-                      <li key={index}>
+                    {/* Your own review first, with Edit / Delete */}
+                    {[...spot.reviews].sort((a, b) => Number(b.mine) - Number(a.mine)).slice(0, 3).map((review) => (
+                      <li key={review.reviewId}>
                         <div className="text-yellow-500">
                           {'★'.repeat(review.rating)}
                           <span className="text-gray-300">
@@ -191,8 +211,9 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                         <p className="text-sm text-main mt-1">{review.text}</p>
 
                         <p className="text-[11px] text-muted mt-0.5">
-                          {review.firstName} · {review.createdAt}
+                          {review.mine ? 'You' : review.firstName} · {review.createdAt}
                         </p>
+                        {review.mine && <MyReviewControls spotId={spot.spotId} review={review} />}
                       </li>
                     ))}
                   </ul>
@@ -252,6 +273,27 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
               )}
             </Card>
 
+            <Card title="Usually by time of day">
+              {spot.timeOfDay && spot.timeOfDay.length > 0 ? (
+                <>
+                  <ul className="space-y-2">
+                    {spot.timeOfDay.map((row) => (
+                      <li key={row.block} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="font-medium text-main">{row.block}</span>
+                        <span className="text-right text-secondary">
+                          {row.noise} · {row.crowdedness}
+                          <span className="ml-1 text-[11px] text-muted">({row.reports} report{row.reports === 1 ? '' : 's'})</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 text-[11px] text-muted">Most common noise and crowdedness in past reports. Morning 6–11, Afternoon 12–4, Evening 5–9, Night 10–5.</p>
+                </>
+              ) : (
+                <p className="text-sm text-muted">Not enough reports yet.</p>
+              )}
+            </Card>
+
             <Card title="Amenities">
               {spot.amenities.length > 0 ? (
                 <ul className="space-y-2">
@@ -270,12 +312,173 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
             </Card>
             
             <Card title="Leave a review">
-              <ReviewForm spotId={spot.spotId} role={role} locked={tooFar} />
+              {spot.reviews.some((review) => review.mine) ? (
+                <p className="text-sm text-muted">You already reviewed this spot. You can edit or delete it under Reviews.</p>
+              ) : (
+                <ReviewForm spotId={spot.spotId} role={role} locked={tooFar} />
+              )}
             </Card>
           </div>
         </div>
       </main>
     </div>
+  )
+}
+
+// "Add a photo" for students at the spot. The browser shrinks the photo to at most 1280px and
+// sends it as a JPEG to upload-photo.jsp (the location is added by the study-spot.jsp script).
+function AddPhotoForm({ spotId, role, locked }: { spotId: number; role: string; locked: boolean }) {
+  const [preview, setPreview] = useState('')
+  const [note, setNote] = useState('')
+
+  if (role !== 'student') return null
+
+  const shrink = (file: File) => {
+    setNote('')
+    const reader = new FileReader()
+    reader.onload = () => {
+      const image = new Image()
+      image.onload = () => {
+        const scale = Math.min(1, 1280 / Math.max(image.width, image.height))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(image.width * scale)
+        canvas.height = Math.round(image.height * scale)
+        canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height)
+        let dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+        if (dataUrl.length > 1_400_000) dataUrl = canvas.toDataURL('image/jpeg', 0.6)
+        if (dataUrl.length > 1_900_000) {
+          setNote('That photo is too large. Try a smaller one.')
+          setPreview('')
+          return
+        }
+        setPreview(dataUrl)
+      }
+      image.onerror = () => setNote('That file is not a photo we can read. Try a JPG or PNG.')
+      image.src = String(reader.result)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  return (
+    <form method="post" action={`${window.studyFinderContext ?? ''}/upload-photo.jsp`} className="mt-4 border-t border-[#e2ddd5] pt-4">
+      <input type="hidden" name="spotId" value={spotId} />
+      <input type="hidden" name="photo" value={preview} />
+      <label className={`inline-flex items-center gap-2 text-sm ${locked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+        <span className="btn-secondary px-3 py-1.5 text-xs">{preview ? 'Choose a different photo' : 'Add a photo'}</span>
+        <input
+          type="file"
+          accept="image/*"
+          disabled={locked}
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            if (file) shrink(file)
+          }}
+        />
+      </label>
+      {note && <p className="mt-2 text-xs text-[#b83c2a]">{note}</p>}
+      {preview && (
+        <div className="mt-3 flex items-end gap-3">
+          <img src={preview} alt="Photo to upload" className="h-24 w-24 rounded-lg object-cover" />
+          <button type="submit" disabled={locked} className="btn-primary px-3 py-1.5 text-xs disabled:opacity-50">
+            Upload photo
+          </button>
+        </div>
+      )}
+      <p className="mt-2 text-[11px] text-muted">You need to be at the spot (within 0.3 miles). Up to 5 photos per spot.</p>
+    </form>
+  )
+}
+
+// Combined rating: 70% average review stars + 30% how often reports are rated accurate.
+function OverallRating({ overall }: { overall?: SpotDetail['overall'] }) {
+  if (!overall || overall.score == null) {
+    return <p className="mt-3 text-sm text-muted">No ratings yet. Review this spot or rate its latest report.</p>
+  }
+  const parts = [
+    overall.reviewCount > 0 ? `${overall.avgStars.toFixed(1)}★ from ${overall.reviewCount} review${overall.reviewCount === 1 ? '' : 's'}` : null,
+    overall.accuracyPercent != null ? `${overall.accuracyPercent}% of ${overall.ratingCount} rating${overall.ratingCount === 1 ? '' : 's'} say reports are accurate` : null,
+  ].filter(Boolean)
+  return (
+    <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      <span className="font-display text-2xl text-main">★ {overall.score.toFixed(1)}</span>
+      <span className="text-xs text-muted">overall · {parts.join(' · ')}</span>
+    </div>
+  )
+}
+
+// Edit / Delete for the logged-in student's own review. Posts to edit-review.jsp.
+function MyReviewControls({ spotId, review }: { spotId: number; review: SpotReview }) {
+  const [mode, setMode] = useState<'view' | 'edit' | 'confirmDelete'>('view')
+  const [rating, setRating] = useState(review.rating)
+  const action = `${window.studyFinderContext ?? ''}/edit-review.jsp`
+
+  if (mode === 'view') {
+    return (
+      <div className="mt-1 flex gap-3">
+        <button type="button" onClick={() => setMode('edit')} className="btn-link text-xs">
+          Edit
+        </button>
+        <button type="button" onClick={() => setMode('confirmDelete')} className="btn-link text-xs">
+          Delete
+        </button>
+      </div>
+    )
+  }
+
+  if (mode === 'confirmDelete') {
+    return (
+      <form method="post" action={action} className="mt-2 flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f4ef] p-3 text-xs">
+        <input type="hidden" name="action" value="delete" />
+        <input type="hidden" name="spotId" value={spotId} />
+        <input type="hidden" name="reviewId" value={review.reviewId} />
+        <span className="text-main">Delete your review? The 5 points it earned will be removed.</span>
+        <button type="submit" className="btn-primary px-3 py-1 text-xs">
+          Delete review
+        </button>
+        <button type="button" onClick={() => setMode('view')} className="btn-secondary px-3 py-1 text-xs">
+          Keep it
+        </button>
+      </form>
+    )
+  }
+
+  return (
+    <form method="post" action={action} className="mt-2 space-y-2 rounded-xl bg-[#f7f4ef] p-3">
+      <input type="hidden" name="action" value="edit" />
+      <input type="hidden" name="spotId" value={spotId} />
+      <input type="hidden" name="reviewId" value={review.reviewId} />
+      <input type="hidden" name="rating" value={rating} />
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => setRating(star)}
+            className={`text-2xl ${star <= rating ? 'text-yellow-500' : 'text-gray-300'}`}
+            aria-label={`${star} stars`}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+      <textarea
+        name="reviewText"
+        required
+        maxLength={255}
+        rows={3}
+        defaultValue={review.text}
+        className="search-input w-full resize-none px-3 py-2 text-sm"
+      />
+      <div className="flex gap-2">
+        <button type="submit" className="btn-primary px-3 py-1.5 text-xs">
+          Save review
+        </button>
+        <button type="button" onClick={() => setMode('view')} className="btn-secondary px-3 py-1.5 text-xs">
+          Cancel
+        </button>
+      </div>
+    </form>
   )
 }
 

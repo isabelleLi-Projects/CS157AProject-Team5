@@ -1,4 +1,4 @@
-export type AdminTab = 'Dashboard' | 'Add Study Spot' | 'Suggested Spots' | 'Reported Students' | 'Add Rewards' | 'Reports' | 'Reviews' | 'All Users' | 'Historical Trends'
+export type AdminTab = 'Dashboard' | 'Add Study Spot' | 'Suggested Spots' | 'Student Photos' | 'Reported Students' | 'Add Rewards' | 'Reports' | 'Reviews' | 'All Users' | 'Historical Trends'
 
 type AdminSidebarProps = { tabs: AdminTab[]; activeTab: AdminTab; onTabChange: (tab: AdminTab) => void }
 

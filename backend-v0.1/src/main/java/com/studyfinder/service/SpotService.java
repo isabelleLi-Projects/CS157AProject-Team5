@@ -110,6 +110,22 @@ public class SpotService {
         spot.setOpenNow(openNow);
     }
 
+    private final com.studyfinder.dao.ReviewDAO reviewDAO = new com.studyfinder.dao.ReviewDAO();
+
+    /** Edit your own review. @return null on success, otherwise a message to show the student */
+    public String editReview(int userId, int reviewId, int rating, String reviewText) throws SQLException {
+        if (rating < 1 || rating > 5) return "Rating must be between 1 and 5.";
+        String text = reviewText == null ? "" : reviewText.trim();
+        if (text.isEmpty()) return "Please write a review.";
+        if (text.length() > 255) return "Review must be 255 characters or less.";
+        return reviewDAO.updateReview(userId, reviewId, rating, text) ? null : "You can only edit your own review.";
+    }
+
+    /** Delete your own review (takes back its 5 points). @return null on success, otherwise a message */
+    public String deleteReview(int userId, int reviewId) throws SQLException {
+        return reviewDAO.deleteReview(userId, reviewId) ? null : "You can only delete your own review.";
+    }
+
     public String submitReview(
             int userId,
             int spotId,

@@ -14,8 +14,9 @@ export interface StudySpot {
   crowdLevel: CrowdLevel
   outlets: string
   updated: string
-  rating: number
+  rating: number | null // combined rating out of 5; null = not rated yet
   reviewCount: number
+  ratingCount: number // accuracy ratings on the spot's reports
   img: string
   tags: string[]
   open: boolean

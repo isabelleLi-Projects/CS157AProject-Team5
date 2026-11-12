@@ -76,7 +76,7 @@ public class SpotDetailDAO {
 
         // Visible reviews for this spot with the reviewer's first name (read-only
         // here).
-        String reviewSql = "SELECT SUBSTRING_INDEX(u.full_name, ' ', 1) AS first_name, "
+        String reviewSql = "SELECT rv.review_id, rv.user_id, SUBSTRING_INDEX(u.full_name, ' ', 1) AS first_name, "
                 + "rv.rating, rv.review_text, "
                 + "DATE_FORMAT(rv.created_at, '%Y-%m-%d') AS created_at "
                 + "FROM reviews rv "
@@ -148,6 +148,8 @@ public class SpotDetailDAO {
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         spot.getReviews().add(new SpotDetail.Review(
+                                rs.getInt("review_id"),
+                                rs.getInt("user_id"),
                                 rs.getString("first_name"),
                                 rs.getInt("rating"),
                                 rs.getString("review_text"),
@@ -504,7 +506,8 @@ public class SpotDetailDAO {
     // student must be within 0.3 miles of the study spot
     private static final double MAX_ACTION_DISTANCE_METERS = 0.3 * 1609.344;
 
-    private boolean isWithinActionDistance(
+    /** Also used by SpotPhotoDAO so photos follow the same 0.3 mile rule. */
+    public boolean isWithinActionDistance(
             Connection con,
             int spotId,
             double userLatitude,

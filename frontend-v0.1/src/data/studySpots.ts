@@ -18,9 +18,11 @@ type DatabaseStudySpot = {
   crowdedness?: string
   outlets?: string
   updated?: string
-  rating?: number
-  reviewCount?: number
   amenities?: string[]
+  averageRating?: number // average review stars only (Isabelle); the card shows the combined rating
+  rating?: number | null // combined rating out of 5 (null = no reviews or ratings yet)
+  reviewCount?: number
+  ratingCount?: number
 }
 
 declare global {
@@ -57,8 +59,9 @@ export const STUDY_SPOTS: StudySpot[] = (window.studySpots ?? []).map(
     crowdLevel: level(spot.crowdedness),
     outlets: spot.outlets === '1' ? 'Available' : spot.outlets === '0' ? 'None' : (spot.outlets ?? 'Unknown'),
     updated: spot.updated ?? 'No reports',
-    rating: Number(spot.rating ?? 0),
+    rating: spot.rating ?? null,
     reviewCount: Number(spot.reviewCount ?? 0),
+    ratingCount: Number(spot.ratingCount ?? 0),
     img: spot.img ?? '',
     tags: [spot.accessType, ...(spot.amenities ?? [])].filter(Boolean),
     building: spot.building,

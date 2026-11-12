@@ -46,9 +46,17 @@ export interface SpotDetail {
   reports: SpotReport[]
   reviews: SpotReview[]
   currentUserRating: 'confirmed' | 'disputed' | null
+  // Combined rating: 70% review stars + 30% report accuracy (SpotRatingService)
+  overall?: { score: number | null; avgStars: number; reviewCount: number; accuracyPercent: number | null; ratingCount: number } | null
+  // Photos students added (spot_photos), newest first
+  photos?: Array<{ url: string; firstName: string; uploadedAt: string }>
+  // Most common conditions per time of day, from past reports
+  timeOfDay?: Array<{ block: string; reports: number; noise: string; crowdedness: string }>
   isOwnLatestReport: boolean
 }
 export interface SpotReview {
+  reviewId: number
+  mine: boolean // written by the logged-in student
   firstName: string
   rating: number
   text: string

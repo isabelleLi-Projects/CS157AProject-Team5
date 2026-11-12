@@ -18,6 +18,17 @@ public class AdminDashboardService {
     public List<Map<String, Object>> getActivityLogs() throws SQLException { return dao.getActivityLogs(); }
     public List<Map<String, Object>> getRecentRedemptions() throws SQLException { return dao.getRecentRedemptions(); }
     public List<Map<String, Object>> getSpotClicks() throws SQLException { return dao.getSpotClicks(); }
+
+    /** Historical trends for the admin's Historical Trends tab. */
+    public Map<String, List<Map<String, Object>>> getTrends() throws SQLException {
+        com.studyfinder.dao.TrendsDAO trends = new com.studyfinder.dao.TrendsDAO();
+        Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
+        result.put("reportsPerDay", trends.getReportsPerDay());
+        result.put("crowdednessByTime", trends.getCrowdednessByTime());
+        result.put("mostActiveSpots", trends.getMostActiveSpots());
+        result.put("redemptionsPerWeek", trends.getRedemptionsPerWeek());
+        return result;
+    }
     public void addReward(String name, String description, int points, int stock, String photoPath) throws SQLException { dao.addReward(name, description, points, stock, photoPath); }
     public void addStudySpot(String name, Integer buildingId, String location, String accessType, int capacity, double latitude, double longitude, String photoPath) throws SQLException { dao.addStudySpot(name, buildingId, location, accessType, capacity, latitude, longitude, photoPath); }
 
@@ -66,7 +77,7 @@ public class AdminDashboardService {
 
     public List<Map<String, Object>> getAllSpots() throws SQLException { return dao.getAllSpots(); }
 
-    private static final List<String> ACTIVE_TYPES = List.of("student", "spot", "review", "report");
+    private static final List<String> ACTIVE_TYPES = List.of("student", "spot", "review", "report", "photo");
 
     /**
      * Makes a student, study spot, review, or report active or inactive.
