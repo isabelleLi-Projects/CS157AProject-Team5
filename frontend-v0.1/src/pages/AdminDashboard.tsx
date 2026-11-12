@@ -14,6 +14,7 @@ type AdminRow = {
   status?: string
   meta?: string
   active?: boolean // present when the admin can make this row active/inactive
+  details?: string // extra line shown under a row (Suggested Spots)
 }
 
 // What a Deactivate/Reactivate button changes, and which tab to come back to.
@@ -27,6 +28,7 @@ type AdminDashboardData = {
   recentRedemptions?: AdminRow[]
   users?: AdminRow[]
   spots?: AdminRow[]
+  suggestions?: AdminRow[]
   studySpots?: StudySpot[]
   counts?: { reports?: number; reviews?: number; users?: number; activeSpots?: number; redemptions?: number }
 }
@@ -50,7 +52,7 @@ declare global {
 
 const emptyData: AdminDashboardData = { reports: [], reviews: [], activityLogs: [], recentRedemptions: [], counts: {} }
 
-const tabs: AdminTab[] = ['Dashboard', 'Add Study Spot', 'Reported Students', 'Add Rewards', 'Reports', 'Reviews', 'All Users', 'Historical Trends']
+const tabs: AdminTab[] = ['Dashboard', 'Add Study Spot', 'Suggested Spots', 'Reported Students', 'Add Rewards', 'Reports', 'Reviews', 'All Users', 'Historical Trends']
 
 export default function AdminDashboard() {
   // admin-action can send the admin back to a tab (for example after a form error)
@@ -136,6 +138,38 @@ function ActivityList({ rows, showStatus = false, toggle }: { rows: AdminRow[]; 
   return <div className="divide-y divide-[#e2ddd5]">{rows.map((row) => <div key={`${row.id}-${row.label}`} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"><div className="min-w-0"><p className={`truncate text-sm font-medium ${row.active === false ? 'text-muted line-through' : 'text-main'}`}>{row.label}</p><p className="truncate text-xs text-muted">{row.secondary} · {row.meta}</p></div><div className="flex shrink-0 items-center gap-2">{showStatus && row.status && <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${row.active === false ? 'bg-[#f6dcd7] text-[#8c2418]' : 'bg-[#d1ead9] text-[#2d5a3d]'}`}>{row.status}</span>}{toggle && row.active !== undefined && <ActiveToggle row={row} target={toggle} />}</div></div>)}</div>
 }
 
+// Student suggestions waiting for review, with Approve (spot goes live, student +15 points) and Reject (stays hidden).
+function SuggestionList({ rows }: { rows: AdminRow[] }) {
+  if (!rows.length) return <EmptyState title="No suggestions to review" text="When a student suggests a study spot, it shows up here." />
+  return (
+    <div className="divide-y divide-[#e2ddd5]">
+      {rows.map((row) => (
+        <div key={row.id} className="flex flex-wrap items-start justify-between gap-3 py-4 first:pt-0 last:pb-0">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-main">{row.label}</p>
+            <p className="text-xs text-muted">{row.secondary}</p>
+            {row.details && <p className="mt-1 text-xs text-secondary">{row.details}</p>}
+            <p className="mt-1 text-xs text-muted">{row.meta}</p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            {(['approve', 'reject'] as const).map((decision) => (
+              <form key={decision} method="post" action={`${window.studyFinderContext ?? ''}/admin-action`}>
+                <input type="hidden" name="action" value="reviewSuggestion" />
+                <input type="hidden" name="id" value={row.id} />
+                <input type="hidden" name="decision" value={decision} />
+                <input type="hidden" name="returnTab" value="Suggested Spots" />
+                <button type="submit" className={`${decision === 'approve' ? 'btn-primary' : 'btn-secondary'} px-3 py-1.5 text-xs`}>
+                  {decision === 'approve' ? 'Approve' : 'Reject'}
+                </button>
+              </form>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // Deactivate / Reactivate button. Posts to the admin-action servlet, which saves the change and logs it.
 function ActiveToggle({ row, target }: { row: AdminRow; target: ToggleTarget }) {
   return (
@@ -162,9 +196,9 @@ function EmptyState({ title, text }: { title: string; text: string }) {
 }
 
 function AdminSection({ tab, data }: { tab: AdminTab; data: AdminDashboardData }) {
-  const titles: Record<AdminTab, string> = { Dashboard: 'Dashboard', 'Add Study Spot': 'Manage study spots', 'Reported Students': 'Reported students', 'Add Rewards': 'Manage rewards', Reports: 'Reports', Reviews: 'Reviews', 'All Users': 'All users', 'Historical Trends': 'Historical trends' }
+  const titles: Record<AdminTab, string> = { Dashboard: 'Dashboard', 'Add Study Spot': 'Manage study spots', 'Suggested Spots': 'Spots suggested by students', 'Reported Students': 'Reported students', 'Add Rewards': 'Manage rewards', Reports: 'Reports', Reviews: 'Reviews', 'All Users': 'All users', 'Historical Trends': 'Historical trends' }
   const rows = tab === 'Reports' ? data.reports : tab === 'Reviews' ? data.reviews : tab === 'Reported Students' ? data.activityLogs : tab === 'All Users' ? data.users : []
   // Tabs whose rows can be made active/inactive.
   const toggle: ToggleTarget | undefined = tab === 'Reports' ? { type: 'report', tab } : tab === 'Reviews' ? { type: 'review', tab } : tab === 'All Users' ? { type: 'student', tab } : undefined
-  return <section><div className="mb-6"><p className="text-sm text-muted">Administration</p><h1 className="font-display text-3xl text-main">{titles[tab]}</h1></div><div className="surface-background standard-border rounded-2xl p-5">{tab === 'Add Study Spot' ? <SpotForm /> : tab === 'Add Rewards' ? <RewardForm /> : tab === 'Historical Trends' ? <EmptyState title="Historical trends" text="Charts will use preserved reports and the future study_spot_views table." /> : <ActivityList rows={rows ?? []} showStatus toggle={toggle} />}</div>{tab === 'Add Study Spot' && <div className="surface-background standard-border mt-6 rounded-2xl p-5"><h2 className="mb-4 font-display text-xl text-main">Existing study spots</h2><ActivityList rows={data.spots ?? []} showStatus toggle={{ type: 'spot', tab }} /></div>}</section>
+  return <section><div className="mb-6"><p className="text-sm text-muted">Administration</p><h1 className="font-display text-3xl text-main">{titles[tab]}</h1></div><div className="surface-background standard-border rounded-2xl p-5">{tab === 'Add Study Spot' ? <SpotForm /> : tab === 'Suggested Spots' ? <SuggestionList rows={data.suggestions ?? []} /> : tab === 'Add Rewards' ? <RewardForm /> : tab === 'Historical Trends' ? <EmptyState title="Historical trends" text="Charts will use preserved reports and the future study_spot_views table." /> : <ActivityList rows={rows ?? []} showStatus toggle={toggle} />}</div>{tab === 'Add Study Spot' && <div className="surface-background standard-border mt-6 rounded-2xl p-5"><h2 className="mb-4 font-display text-xl text-main">Existing study spots</h2><ActivityList rows={data.spots ?? []} showStatus toggle={{ type: 'spot', tab }} /></div>}</section>
 }

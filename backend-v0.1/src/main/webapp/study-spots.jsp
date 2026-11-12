@@ -27,6 +27,8 @@
                 .append(",meta:\"").append(js(String.valueOf(row.get("meta")))).append("\"");
             if (row.get("status") != null) json.append(",status:\"").append(js(String.valueOf(row.get("status")))).append("\"");
             // 1/0 when the admin can turn this row on or off (null for administrators and log rows).
+            // Extra text shown under a row (used by Suggested Spots).
+            if (row.get("details") != null) json.append(",details:\"").append(js(String.valueOf(row.get("details")))).append("\"");
             if (row.get("active") != null) json.append(",active:").append(String.valueOf(row.get("active")).matches("1|true"));
             json.append('}');
         }
@@ -49,7 +51,7 @@
     int points = 0;
     String databaseError = null;
     Map<String, Integer> adminCounts = Map.of();
-    List<Map<String, Object>> adminReports = List.of(), adminReviews = List.of(), adminUsers = List.of(), adminSpots = List.of(), adminActivity = List.of(), adminRedemptions = List.of(), adminSpotClicks = List.of();
+    List<Map<String, Object>> adminReports = List.of(), adminReviews = List.of(), adminUsers = List.of(), adminSpots = List.of(), adminSuggestions = List.of(), suggestionBuildings = List.of(), adminActivity = List.of(), adminRedemptions = List.of(), adminSpotClicks = List.of();
     try {
         StudyFinderPageService service = new StudyFinderPageService();
         studySpots = service.getStudySpots();
@@ -58,6 +60,10 @@
         activityLogs = service.getActivityLogs();
         verifications = service.getVerifications();
         if (currentUser.id() != null) points = service.getStudentPoints(currentUser.id());
+        // Students get the building list for the "Suggest a study spot" form.
+        if (SessionUser.ROLE_STUDENT.equals(currentUser.role())) {
+            suggestionBuildings = new com.studyfinder.service.SpotSuggestionService().getBuildings();
+        }
         if (currentUser.isAdmin()) {
             AdminDashboardService admin = new AdminDashboardService();
             adminBuildings = admin.getBuildings();
@@ -66,6 +72,7 @@
             adminReviews = admin.getReviews();
             adminUsers = admin.getUsers();
             adminSpots = admin.getAllSpots();
+            adminSuggestions = new com.studyfinder.service.SpotSuggestionService().getPendingSuggestions();
             adminActivity = admin.getActivityLogs();
             adminRedemptions = admin.getRecentRedemptions();
             try { adminSpotClicks = admin.getSpotClicks(); } catch (SQLException ignored) { /* optional migration */ }
@@ -77,7 +84,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>StudyFinder Study Spots</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-CN-0CXYc.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-TnHXE_J8.css"></head>
 <body>
 <% if (databaseError != null) { %><p style="padding:1rem;color:#9b1c1c;"><%= databaseError %></p><% } %>
 <div id="root"></div>
@@ -85,6 +92,8 @@
 window.studyFinderContext = "<%= js(request.getContextPath()) %>";
 window.currentUser = { id: <%= currentUser.id() == null ? "null" : currentUser.id() %>, name: "<%= js(currentUser.name()) %>", email: "<%= js(currentUser.email()) %>", role: "<%= js(currentUser.role()) %>" };
 window.studentPoints = <%= points %>;
+// Buildings for the student "Suggest a study spot" form (empty for guests and admins).
+window.suggestionBuildings = [<% for (int i = 0; i < suggestionBuildings.size(); i++) { Map<String, Object> b = suggestionBuildings.get(i); %>{ id: <%= b.get("id") %>, acronym: "<%= js(String.valueOf(b.get("acronym"))) %>", name: "<%= js(String.valueOf(b.get("name"))) %>" }<%= i + 1 < suggestionBuildings.size() ? "," : "" %><% } %>];
 window.flashMessage = "<%= js(request.getParameter("message")) %>";
 window.flashError = "<%= js(request.getParameter("error")) %>";
 window.adminMessage = "<%= js(request.getParameter("adminMessage")) %>";
@@ -95,7 +104,7 @@ window.adminTab = "<%= js(request.getParameter("adminTab")) %>";
 window.adminDashboard = {
   counts: { activeSpots:<%= adminCounts.getOrDefault("activeSpots", 0) %>, reports:<%= adminCounts.getOrDefault("reports", 0) %>, reviews:<%= adminCounts.getOrDefault("reviews", 0) %>, users:<%= adminCounts.getOrDefault("users", 0) %>, redemptions:<%= adminCounts.getOrDefault("redemptions", 0) %> },
   spotClicks: [<% for (int i=0;i<adminSpotClicks.size();i++) { Map<String,Object> row=adminSpotClicks.get(i); %>{spot:"<%= js(String.valueOf(row.get("spot"))) %>",clicks:<%= row.get("clicks") %>}<%= i+1<adminSpotClicks.size()?",":"" %><% } %>],
-  reports: <%= adminRows(adminReports) %>, reviews: <%= adminRows(adminReviews) %>, activityLogs: <%= adminRows(adminActivity) %>, recentRedemptions: <%= adminRows(adminRedemptions) %>, users: <%= adminRows(adminUsers) %>, spots: <%= adminRows(adminSpots) %>,
+  reports: <%= adminRows(adminReports) %>, reviews: <%= adminRows(adminReviews) %>, activityLogs: <%= adminRows(adminActivity) %>, recentRedemptions: <%= adminRows(adminRedemptions) %>, users: <%= adminRows(adminUsers) %>, spots: <%= adminRows(adminSpots) %>, suggestions: <%= adminRows(adminSuggestions) %>,
   studySpots: [<% for (int i=0;i<studySpots.size();i++) { StudySpot spot=studySpots.get(i); %>{id:<%=spot.getSpotId()%>,name:"<%=js(spot.getName())%>",location:"<%=js(spot.getLocation())%>",latitude:<%=spot.getLatitude()%>,longitude:<%=spot.getLongitude()%>,accessType:"<%=js(spot.getAccessType())%>",noise:"<%=js(spot.getNoise())%>",noiseLevel:"low",crowded:"<%=js(spot.getCrowdedness())%>",crowdLevel:"low",outlets:"<%=js(spot.getOutlets())%>",updated:"<%=js(spot.getUpdated())%>",rating:0,img:"",tags:[],open:<%=spot.getOpenNow()==null?"null":spot.getOpenNow()%>,building:"<%=js(spot.getBuilding())%>",capacity:<%=spot.getCapacity()%>}<%=i+1<studySpots.size()?",":""%><% } %>]
 };
 // provides a dicionary like this 1:BBC, 2:KING
@@ -160,5 +169,5 @@ window.reviews = [<% for (int i=0;i<reviews.size();i++) { Map<String,Object> row
 window.activityLogs = [<% for (int i=0;i<activityLogs.size();i++) { Map<String,Object> row=activityLogs.get(i); %>{userId:<%= row.get("user_id") %>,actionType:"<%= js((String) row.get("action_type")) %>",targetType:"<%= js((String) row.get("target_type")) %>",targetId:<%= row.get("target_id") == null ? "null" : row.get("target_id") %>}<%= i+1<activityLogs.size()?",":"" %><% } %>];
 window.verifications = [<% for (int i=0;i<verifications.size();i++) { Map<String,Object> row=verifications.get(i); %>{reportId:<%= row.get("report_id") %>,userId:<%= row.get("user_id") %>,result:"<%= js((String) row.get("result")) %>"}<%= i+1<verifications.size()?",":"" %><% } %>];
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-CMM5lONd.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-BG4qfqeS.js"></script>
 </body></html>

@@ -143,7 +143,7 @@ public class AdminDashboardService {
     }
 
     // Outline of the SJSU main campus as {latitude, longitude} corners, going around the edge.
-    // Taken from OpenStreetMap (c) OpenStreetMap contributors. Same points as SJSU_CAMPUS in AdminSpotForm.tsx.
+    // Taken from OpenStreetMap (c) OpenStreetMap contributors. Same points as SJSU_CAMPUS in frontend utils/campus.ts.
     private static final double[][] SJSU_CAMPUS = {
         { 37.335805, -121.885877 }, // 4th St & San Fernando St (King Library corner)
         { 37.333161, -121.883917 },

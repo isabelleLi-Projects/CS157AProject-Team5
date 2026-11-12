@@ -88,6 +88,8 @@ public class AdminDashboardDAO {
                 + "s.location_details meta, CASE WHEN s.is_active = 1 THEN 'Active' ELSE 'Inactive' END status, "
                 + "s.is_active active "
                 + "FROM study_spots s LEFT JOIN buildings b ON b.building_id = s.building_id "
+                // Student suggestions show in the Suggested Spots tab until an admin approves them.
+                + "WHERE s.suggestion_status IS NULL OR s.suggestion_status = 'approved' "
                 + "ORDER BY s.spot_name");
     }
 
@@ -228,7 +230,9 @@ public class AdminDashboardDAO {
             // Only students (not administrators) can be deactivated. Login refuses 'inactive' accounts.
             case "student" -> change = "UPDATE users SET account_status = ? WHERE user_id = ? "
                     + "AND user_id IN (SELECT user_id FROM students)";
-            case "spot" -> change = "UPDATE study_spots SET is_active = ? WHERE spot_id = ?";
+            // Pending or rejected suggestions are handled by Approve/Reject, not here.
+            case "spot" -> change = "UPDATE study_spots SET is_active = ? WHERE spot_id = ? "
+                    + "AND (suggestion_status IS NULL OR suggestion_status = 'approved')";
             case "review" -> change = "UPDATE reviews SET is_visible = ? WHERE review_id = ?";
             // Reports: add a moderates row; the newest one decides if the report is hidden.
             case "report" -> change = "INSERT INTO moderates (administrator_id, report_id, action, reason, created_at) "

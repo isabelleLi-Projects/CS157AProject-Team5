@@ -55,6 +55,14 @@ public class AdminActionServlet extends HttpServlet {
             } else if ("addSpot".equals(action)) {
                 addStudySpot(request, service);
 
+            } else if ("reviewSuggestion".equals(action)) {
+                // Approve (spot goes live, student +15 points) or reject (stays hidden) a student's suggested spot.
+                String decision = request.getParameter("decision");
+                new com.studyfinder.service.SpotSuggestionService().review(current.id(), request.getParameter("id"), decision);
+                response.sendRedirect(request.getContextPath() + "/study-spots.jsp?adminTab=Suggested+Spots&adminMessage="
+                        + ("approve".equals(decision) ? "Spot+approved.+The+student+earned+15+points." : "Suggestion+rejected"));
+                return;
+
             } else if ("setActive".equals(action)) {
                 // Deactivate / reactivate a student, study spot, review, or report, then go back to that tab.
                 boolean active = "1".equals(request.getParameter("active"));

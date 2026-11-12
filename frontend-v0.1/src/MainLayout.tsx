@@ -11,6 +11,7 @@ import SpotFilters from './components/SpotFilters'
 import SpotSection from './components/SpotSection'
 import MapView from './components/MapView'
 import FlashBanner from './components/FlashBanner'
+import SuggestSpotForm from './components/SuggestSpotForm'
 import { distanceInMiles } from './utils/distance'
 
 type UserLocation = {
@@ -29,6 +30,9 @@ export default function MainLayout() {
   const [locationError, setLocationError] = useState('')
   // const [locationDismissed, setLocationDismissed] = useState(false)
   const [search, setSearch] = useState('')
+  // Students can suggest a new study spot for an admin to approve.
+  const isStudent = currentUser?.role?.toLowerCase() === 'student'
+  const [suggestOpen, setSuggestOpen] = useState(false)
   const [activeFilter, setActiveFilter] = useState('All')
   const [activeNav, setActiveNav] = useState(() => {
     const nav = new URLSearchParams(window.location.search).get('nav')
@@ -197,15 +201,23 @@ export default function MainLayout() {
         ========================== */}
         {activeNav === 'Find Spots' && (
           <section className="pt-8">
-            <div className="mb-6">
-              <h1 className="font-display text-3xl text-main mb-2">
-                Find Study Spots
-              </h1>
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h1 className="font-display text-3xl text-main mb-2">
+                  Find Study Spots
+                </h1>
 
-              <p className="text-sm text-muted">
-                Search and filter study spaces around the SJSU campus.
-              </p>
+                <p className="text-sm text-muted">
+                  Search and filter study spaces around the SJSU campus.
+                </p>
+              </div>
+              {isStudent && (
+                <button type="button" onClick={() => setSuggestOpen(true)} className="btn-secondary px-4 py-2 text-sm">
+                  Suggest a study spot
+                </button>
+              )}
             </div>
+            {suggestOpen && <SuggestSpotForm onClose={() => setSuggestOpen(false)} />}
 
             {/* {!locationDismissed && (
               <LocationBanner
