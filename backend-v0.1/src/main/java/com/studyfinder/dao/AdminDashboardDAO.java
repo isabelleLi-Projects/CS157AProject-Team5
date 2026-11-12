@@ -98,47 +98,98 @@ public class AdminDashboardDAO {
     }
 
     public void addStudySpot(String name, Integer buildingId, String location, String accessType, int capacity, double latitude, double longitude, String photoPath) throws SQLException {
-    String sql =
-        "INSERT INTO study_spots "
-        + "(building_id, spot_name, location_details, "
-        + "access_type, capacity, is_active, created_at, "
-        + "latitude, longitude, photo_path) "
-        + "VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, ?, ?, ?)";
+        addStudySpot(name, buildingId, location, accessType, capacity, latitude, longitude, photoPath, List.of(), null);
+    }
 
-    try (Connection con = DatabaseConnection.getConnection();
-         PreparedStatement stmt = con.prepareStatement(sql)) {
+    /**
+     * Adds a study spot, its amenities (provides) and its building's hours (building_hours)
+     * in one transaction, so either everything is saved or nothing is.
+     *
+     * @param amenityNames names from the form's checkboxes; names not in amenities are skipped
+     * @param hours day name -> {opening "HH:mm", closing "HH:mm"}, or null value for a closed day.
+     *              Pass null to leave building_hours unchanged (for example an outdoor spot).
+     */
+    public void addStudySpot(String name, Integer buildingId, String location, String accessType, int capacity,
+            double latitude, double longitude, String photoPath, List<String> amenityNames,
+            Map<String, String[]> hours) throws SQLException {
+        String insertSpot =
+            "INSERT INTO study_spots "
+            + "(building_id, spot_name, location_details, "
+            + "access_type, capacity, is_active, created_at, "
+            + "latitude, longitude, photo_path) "
+            + "VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, ?, ?, ?)";
+        // Link the new spot to each checked amenity (looked up by name).
+        String insertProvides =
+            "INSERT INTO provides (spot_id, amenity_id) "
+            + "SELECT ?, amenity_id FROM amenities WHERE amenity_name = ? AND is_active = 1";
+        // Hours belong to the building: add the day, or update it if it already exists.
+        String upsertHours =
+            "INSERT INTO building_hours (building_id, day_of_week, opening_time, closing_time) "
+            + "VALUES (?, ?, ?, ?) "
+            + "ON DUPLICATE KEY UPDATE opening_time = VALUES(opening_time), closing_time = VALUES(closing_time)";
+        // A day marked Closed has no row.
+        String deleteHours = "DELETE FROM building_hours WHERE building_id = ? AND day_of_week = ?";
 
-        con.setAutoCommit(false);
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement spotStmt = con.prepareStatement(insertSpot, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement providesStmt = con.prepareStatement(insertProvides);
+             PreparedStatement upsertStmt = con.prepareStatement(upsertHours);
+             PreparedStatement deleteStmt = con.prepareStatement(deleteHours)) {
 
-        try {
-            // Stores NULL when the spot is outdoors
-            stmt.setObject(
-                1,
-                buildingId,
-                java.sql.Types.INTEGER
-            );
+            con.setAutoCommit(false);
 
-            stmt.setString(2, name);
-            stmt.setString(3, location);
-            stmt.setString(4, accessType);
-            stmt.setInt(5, capacity);
-            stmt.setDouble(6, latitude);
-            stmt.setDouble(7, longitude);
-            stmt.setString(8, photoPath);
+            try {
+                // Stores NULL when the spot is outdoors
+                spotStmt.setObject(1, buildingId, java.sql.Types.INTEGER);
+                spotStmt.setString(2, name);
+                spotStmt.setString(3, location);
+                spotStmt.setString(4, accessType);
+                spotStmt.setInt(5, capacity);
+                spotStmt.setDouble(6, latitude);
+                spotStmt.setDouble(7, longitude);
+                spotStmt.setString(8, photoPath);
+                spotStmt.executeUpdate();
 
-            stmt.executeUpdate();
+                int spotId;
+                try (ResultSet keys = spotStmt.getGeneratedKeys()) {
+                    if (!keys.next()) throw new SQLException("New study spot id was not returned");
+                    spotId = keys.getInt(1);
+                }
 
-            con.commit();
+                for (String amenity : amenityNames) {
+                    providesStmt.setInt(1, spotId);
+                    providesStmt.setString(2, amenity);
+                    providesStmt.executeUpdate();
+                }
 
-        } catch (SQLException exception) {
-            con.rollback();
-            throw exception;
+                if (buildingId != null && hours != null) {
+                    for (Map.Entry<String, String[]> day : hours.entrySet()) {
+                        if (day.getValue() == null) {
+                            deleteStmt.setInt(1, buildingId);
+                            deleteStmt.setString(2, day.getKey());
+                            deleteStmt.executeUpdate();
+                        } else {
+                            upsertStmt.setInt(1, buildingId);
+                            upsertStmt.setString(2, day.getKey());
+                            upsertStmt.setString(3, day.getValue()[0]);
+                            upsertStmt.setString(4, day.getValue()[1]);
+                            upsertStmt.executeUpdate();
+                        }
+                    }
+                }
 
-        } finally {
-            con.setAutoCommit(true);
+                con.commit();
+
+            } catch (SQLException exception) {
+                con.rollback();
+                throw exception;
+
+            } finally {
+                con.setAutoCommit(true);
+            }
         }
     }
-}
+
     public List<Map<String, Object>> getBuildings() throws SQLException {
         List<Map<String, Object>> buildings = new ArrayList<>();
 

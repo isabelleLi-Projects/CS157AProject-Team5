@@ -26,6 +26,39 @@ public class AdminDashboardService {
      * "hours": day name -> [opening "HH:mm", closing "HH:mm"] from building_hours, and
      * "photoPath": newest photo of another spot in the building (may be null).
      */
+    private static final List<String> DAYS = List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
+    private static final Pattern TIME = Pattern.compile("([01]\\d|2[0-3]):[0-5]\\d");
+
+    /**
+     * Adds a spot with its amenities and building hours.
+     * openingTimes/closingTimes: day name -> "HH:mm"; a day missing from either map is Closed.
+     *
+     * @throws IllegalArgumentException with a message to show the administrator
+     */
+    public void addStudySpot(String name, Integer buildingId, String location, String accessType, int capacity,
+            double latitude, double longitude, String photoPath, String[] amenities,
+            Map<String, String> openingTimes, Map<String, String> closingTimes) throws SQLException {
+        Map<String, String[]> hours = new LinkedHashMap<>();
+        for (String day : DAYS) {
+            String open = openingTimes.get(day);
+            String close = closingTimes.get(day);
+            if (open == null || open.isBlank() || close == null || close.isBlank()) {
+                hours.put(day, null); // Closed
+                continue;
+            }
+            if (!TIME.matcher(open).matches() || !TIME.matcher(close).matches()) {
+                throw new IllegalArgumentException("Times for " + day + " must look like 08:00.");
+            }
+            if (open.equals(close)) {
+                throw new IllegalArgumentException(day + " opening and closing times can't be the same.");
+            }
+            hours.put(day, new String[] { open + ":00", close + ":00" });
+        }
+        List<String> amenityNames = amenities == null ? List.of() : List.of(amenities);
+        dao.addStudySpot(name, buildingId, location, accessType, capacity, latitude, longitude, photoPath,
+                amenityNames, buildingId == null ? null : hours);
+    }
+
     public List<Map<String, Object>> getBuildings() throws SQLException {
         List<Map<String, Object>> buildings = dao.getBuildings();
         Map<Object, Map<String, String[]>> hoursByBuilding = new LinkedHashMap<>();

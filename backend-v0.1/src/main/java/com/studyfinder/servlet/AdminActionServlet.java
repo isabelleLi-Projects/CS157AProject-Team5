@@ -118,17 +118,26 @@ public class AdminActionServlet extends HttpServlet {
             photoPath = service.getBuildingPhoto(buildingId);
         }
 
+        // Hours from the form: "MondayOpening" / "MondayClosing" etc. Closed days send nothing.
+        java.util.Map<String, String> openingTimes = new java.util.HashMap<>();
+        java.util.Map<String, String> closingTimes = new java.util.HashMap<>();
+        for (String day : new String[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }) {
+            openingTimes.put(day, request.getParameter(day + "Opening"));
+            closingTimes.put(day, request.getParameter(day + "Closing"));
+        }
+
         service.addStudySpot(
             request.getParameter("spotName"),
             buildingId,
             request.getParameter("locationDetails"),
             request.getParameter("accessType"),
-            Integer.parseInt(
-                request.getParameter("capacity")
-            ),
+            Integer.parseInt(request.getParameter("capacity")),
             latitude,
             longitude,
-            photoPath
+            photoPath,
+            request.getParameterValues("amenities"),
+            openingTimes,
+            closingTimes
         );
     }
 

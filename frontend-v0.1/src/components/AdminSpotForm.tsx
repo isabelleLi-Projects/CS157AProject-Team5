@@ -77,10 +77,10 @@ export default function SpotForm() {
           ]),
         ),
       )
-      setHoursNote(`Filled in from ${building?.name}'s saved hours.`)
+      setHoursNote(`Filled in from ${building?.name}'s saved hours. Changes apply to every spot in ${building?.name}.`)
     } else {
       setHours(defaultHours())
-      setHoursNote(building ? `${building.name} has no saved hours yet. Using default hours.` : '')
+      setHoursNote(building ? `${building.name} has no saved hours yet. Check these default hours; they will be saved for the building.` : '')
     }
     setBuildingPhoto(building?.photoUrl ?? '')
     setUseBuildingPhoto(Boolean(building?.photoUrl))

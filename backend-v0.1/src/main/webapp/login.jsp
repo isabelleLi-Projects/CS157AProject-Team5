@@ -78,6 +78,6 @@
     window.authSuccess = "<%= js(success) %>";
     window.studyFinderContext = "<%= js(request.getContextPath()) %>";
   </script>
-  <script type="module" src="${pageContext.request.contextPath}/assets/index-BsNKYXVT.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/assets/index-VOlkoGyR.js"></script>
 </body>
 </html>
