@@ -30,6 +30,7 @@ declare global {
     studySpots?: DatabaseStudySpot[]
     rewards?: Array<{ id: number; label: string; description?: string; pts: number; stock: number }>
     studentPoints?: number
+    redeemedRewardIds?: number[]
     studyFinderContext?: string
     currentUser?: {id: number | null; name: string; email:string; role: string}
   }

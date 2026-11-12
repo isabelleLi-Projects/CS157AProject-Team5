@@ -148,6 +148,7 @@ export default function MainLayout() {
             {isLoggedIn && (
               <RewardsPreview
                 points={window.studentPoints ?? 0}
+                redeemedRewardIds={window.redeemedRewardIds ?? []}
                 rewards={REWARDS}
                 onViewRewards={() => navigateTo('Rewards')}
               />
@@ -319,6 +320,7 @@ export default function MainLayout() {
                 <RewardsPreview
                   points={window.studentPoints ?? 0}
                   rewards={REWARDS}
+                  redeemedRewardIds={window.redeemedRewardIds ?? []}
                   onViewRewards={() => {}}
                 />
               </>

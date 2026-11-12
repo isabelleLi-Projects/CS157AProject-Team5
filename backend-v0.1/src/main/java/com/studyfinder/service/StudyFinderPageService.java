@@ -1,13 +1,13 @@
 package com.studyfinder.service;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
 import com.studyfinder.dao.StudyFinderDAO;
 import com.studyfinder.dao.StudySpotDAO;
 import com.studyfinder.model.Reward;
 import com.studyfinder.model.StudySpot;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
 
 public class StudyFinderPageService {
     private final StudySpotDAO studySpotDAO = new StudySpotDAO();
@@ -47,4 +47,5 @@ public class StudyFinderPageService {
     public List<Map<String, Object>> getReviews() throws SQLException { return studyFinderDAO.getReviews(); }
     public List<Map<String, Object>> getActivityLogs() throws SQLException { return studyFinderDAO.getActivityLogs(); }
     public List<Map<String, Object>> getVerifications() throws SQLException { return studyFinderDAO.getVerifications(); }
+    public List<Integer> getRedeemedRewardIds(int userId) throws SQLException {return studyFinderDAO.getRedeemedRewardIds(userId);}
 }

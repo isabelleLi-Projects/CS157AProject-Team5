@@ -62,13 +62,15 @@
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
+    
     List<StudySpot> studySpots = List.of();
     List<Map<String, Object>> adminBuildings = List.of();
     List<Reward> rewards = List.of();
     List<Map<String, Object>> reviews = List.of();
     List<Map<String, Object>> activityLogs = List.of();
     List<Map<String, Object>> verifications = List.of();
-    
+    List<Integer> redeemedRewardIds = List.of();
+
     int points = 0;
     String databaseError = null;
     Map<String, Integer> adminCounts = Map.of();
@@ -84,7 +86,10 @@
         reviews = service.getReviews();
         activityLogs = service.getActivityLogs();
         verifications = service.getVerifications();
-        if (currentUser.id() != null) points = service.getStudentPoints(currentUser.id());
+        if (currentUser.id() != null) {
+            points = service.getStudentPoints(currentUser.id());
+            redeemedRewardIds = service.getRedeemedRewardIds(currentUser.id());
+        }        
         // Students get the building list for the "Suggest a study spot" form.
         if (SessionUser.ROLE_STUDENT.equals(currentUser.role())) {
             suggestionBuildings = new com.studyfinder.service.SpotSuggestionService().getBuildings();
@@ -119,6 +124,10 @@
 window.studyFinderContext = "<%= js(request.getContextPath()) %>";
 window.currentUser = { id: <%= currentUser.id() == null ? "null" : currentUser.id() %>, name: "<%= js(currentUser.name()) %>", email: "<%= js(currentUser.email()) %>", role: "<%= js(currentUser.role()) %>" };
 window.studentPoints = <%= points %>;
+window.redeemedRewardIds = [
+<%for (int i = 0; i < redeemedRewardIds.size(); i++) { %>
+<%= redeemedRewardIds.get(i) %><%= i + 1 < redeemedRewardIds.size() ? "," : "" %>
+<%}%>];
 // Buildings for the student "Suggest a study spot" form (empty for guests and admins).
 window.suggestionBuildings = [<% for (int i = 0; i < suggestionBuildings.size(); i++) { Map<String, Object> b = suggestionBuildings.get(i); %>{ id: <%= b.get("id") %>, acronym: "<%= js(String.valueOf(b.get("acronym"))) %>", name: "<%= js(String.valueOf(b.get("name"))) %>" }<%= i + 1 < suggestionBuildings.size() ? "," : "" %><% } %>];
 window.flashMessage = "<%= js(request.getParameter("message")) %>";
@@ -204,5 +213,5 @@ window.reviews = [<% for (int i=0;i<reviews.size();i++) { Map<String,Object> row
 window.activityLogs = [<% for (int i=0;i<activityLogs.size();i++) { Map<String,Object> row=activityLogs.get(i); %>{userId:<%= row.get("user_id") %>,actionType:"<%= js((String) row.get("action_type")) %>",targetType:"<%= js((String) row.get("target_type")) %>",targetId:<%= row.get("target_id") == null ? "null" : row.get("target_id") %>}<%= i+1<activityLogs.size()?",":"" %><% } %>];
 window.verifications = [<% for (int i=0;i<verifications.size();i++) { Map<String,Object> row=verifications.get(i); %>{reportId:<%= row.get("report_id") %>,userId:<%= row.get("user_id") %>,result:"<%= js((String) row.get("result")) %>"}<%= i+1<verifications.size()?",":"" %><% } %>];
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-B_a3fuMC.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-C-sSw1rT.js"></script>
 </body></html>

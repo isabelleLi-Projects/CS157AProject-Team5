@@ -61,6 +61,30 @@ public class StudyFinderDAO {
             }
         }
     }
+    public List<Integer> getRedeemedRewardIds(int userId) throws SQLException {
+        List<Integer> rewardIds = new ArrayList<>();
+    
+        String sql = """
+            SELECT DISTINCT reward_id
+            FROM redeems
+            WHERE user_id = ?
+              AND status = 'completed'
+            """;
+    
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+    
+            stmt.setInt(1, userId);
+    
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    rewardIds.add(rs.getInt("reward_id"));
+                }
+            }
+        }
+    
+        return rewardIds;
+    }
 
     /**
      * Redeems a reward in one transaction and logs the gift code in activity_logs.
