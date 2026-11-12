@@ -148,6 +148,7 @@ public class AdminActionServlet extends HttpServlet {
             latitude,
             longitude,
             photoPath,
+            request.getParameter("description"),
             request.getParameterValues("amenities"),
             openingTimes,
             closingTimes

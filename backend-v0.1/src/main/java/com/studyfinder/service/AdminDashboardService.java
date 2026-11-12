@@ -36,8 +36,13 @@ public class AdminDashboardService {
      * @throws IllegalArgumentException with a message to show the administrator
      */
     public void addStudySpot(String name, Integer buildingId, String location, String accessType, int capacity,
-            double latitude, double longitude, String photoPath, String[] amenities,
+            double latitude, double longitude, String photoPath, String description, String[] amenities,
             Map<String, String> openingTimes, Map<String, String> closingTimes) throws SQLException {
+        // study_spots.description is varchar(255); empty means no description.
+        String trimmedDescription = description == null ? "" : description.trim();
+        if (trimmedDescription.length() > 255) {
+            throw new IllegalArgumentException("Description can be at most 255 characters.");
+        }
         Map<String, String[]> hours = new LinkedHashMap<>();
         for (String day : DAYS) {
             String open = openingTimes.get(day);
@@ -56,7 +61,7 @@ public class AdminDashboardService {
         }
         List<String> amenityNames = amenities == null ? List.of() : List.of(amenities);
         dao.addStudySpot(name, buildingId, location, accessType, capacity, latitude, longitude, photoPath,
-                amenityNames, buildingId == null ? null : hours);
+                trimmedDescription.isEmpty() ? null : trimmedDescription, amenityNames, buildingId == null ? null : hours);
     }
 
     public List<Map<String, Object>> getAllSpots() throws SQLException { return dao.getAllSpots(); }

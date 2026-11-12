@@ -123,7 +123,7 @@ public class AdminDashboardDAO {
     }
 
     public void addStudySpot(String name, Integer buildingId, String location, String accessType, int capacity, double latitude, double longitude, String photoPath) throws SQLException {
-        addStudySpot(name, buildingId, location, accessType, capacity, latitude, longitude, photoPath, List.of(), null);
+        addStudySpot(name, buildingId, location, accessType, capacity, latitude, longitude, photoPath, null, List.of(), null);
     }
 
     /**
@@ -135,14 +135,14 @@ public class AdminDashboardDAO {
      *              Pass null to leave building_hours unchanged (for example an outdoor spot).
      */
     public void addStudySpot(String name, Integer buildingId, String location, String accessType, int capacity,
-            double latitude, double longitude, String photoPath, List<String> amenityNames,
+            double latitude, double longitude, String photoPath, String description, List<String> amenityNames,
             Map<String, String[]> hours) throws SQLException {
         String insertSpot =
             "INSERT INTO study_spots "
             + "(building_id, spot_name, location_details, "
             + "access_type, capacity, is_active, created_at, "
-            + "latitude, longitude, photo_path) "
-            + "VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, ?, ?, ?)";
+            + "latitude, longitude, photo_path, description) "
+            + "VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, ?, ?, ?, ?)";
         // Link the new spot to each checked amenity (looked up by name).
         String insertProvides =
             "INSERT INTO provides (spot_id, amenity_id) "
@@ -173,6 +173,7 @@ public class AdminDashboardDAO {
                 spotStmt.setDouble(6, latitude);
                 spotStmt.setDouble(7, longitude);
                 spotStmt.setString(8, photoPath);
+                spotStmt.setString(9, description);
                 spotStmt.executeUpdate();
 
                 int spotId;

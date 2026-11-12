@@ -200,6 +200,17 @@ export default function SpotForm() {
         <input type="number" name="capacity" required min={1} className="search-input mt-1 p-3" />
       </label>
 
+      <label className="sm:col-span-2">
+        Description
+        <textarea
+          name="description"
+          maxLength={255}
+          rows={3}
+          placeholder="What is this spot like? (optional)"
+          className="search-input mt-1 resize-none p-3"
+        />
+      </label>
+
       <div className="text-sm font-medium text-main">
         Study Spot image
         {buildingPhoto && useBuildingPhoto && !fileName ? (
