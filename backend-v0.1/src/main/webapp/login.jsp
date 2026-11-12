@@ -13,6 +13,10 @@
     String error = null;
     String success = null;
     String requestMode = request.getParameter("mode");
+    // The "Start over" link opens login.jsp?view=signup. Drop the pending sign-up, or the verify screen comes back.
+    if ("GET".equalsIgnoreCase(request.getMethod()) && request.getParameter("view") != null) {
+        authService.cancelPendingSignup(request);
+    }
     String authMode = authService.hasPendingSignup(request) || "verify".equals(requestMode)
             ? "verify" : ("signup".equals(request.getParameter("view")) || "signup".equals(requestMode) ? "signup" : "login");
     // Sent here by rate-spot.jsp / report-spot.jsp when a guest tries to rate or report.

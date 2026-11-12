@@ -90,6 +90,12 @@ public class AuthService {
         return guest;
     }
 
+    /** "Start over" on the verify screen: forget the unfinished sign-up so the form shows again. */
+    public void cancelPendingSignup(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) clearPending(session);
+    }
+
     private void clearPending(HttpSession session) {
         session.removeAttribute(PENDING_NAME);
         session.removeAttribute(PENDING_EMAIL);
