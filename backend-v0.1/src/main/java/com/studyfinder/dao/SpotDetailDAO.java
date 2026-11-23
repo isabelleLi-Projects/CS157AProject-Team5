@@ -86,7 +86,7 @@ public class SpotDetailDAO {
 
         try (Connection con = DatabaseConnection.getConnection()) {
             SpotDetail spot;
-            
+
             try (PreparedStatement stmt = con.prepareStatement(spotSql)) {
                 stmt.setInt(1, spotId);
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -215,8 +215,8 @@ public class SpotDetailDAO {
      *
      * @return null on success, otherwise a message to show the student
      */
-    public String submitReport(int userId, int spotId, String noise, String crowdedness, int outlets, 
-        String smell, String wifi, String notes, double latitude, double longitude) throws SQLException {
+    public String submitReport(int userId, int spotId, String noise, String crowdedness, int outlets,
+            String smell, String wifi, String notes, double latitude, double longitude) throws SQLException {
         // The spot must exist and be active.
         String spotSql = "SELECT spot_id FROM study_spots WHERE spot_id = ? AND is_active = 1";
         // Only students can report (reports.user_id references students).
@@ -237,7 +237,7 @@ public class SpotDetailDAO {
                 + "VALUES (?, 'submit_report', 'report', ?, ?, NOW())";
 
         try (Connection con = DatabaseConnection.getConnection()) {
-           // Reject the review if the user is too far away.
+            // Reject the review if the user is too far away.
             if (!isWithinActionDistance(con, spotId, latitude, longitude)) {
                 return "You must be within 0.3 miles of the study spot to report conditions.";
             }
@@ -315,7 +315,8 @@ public class SpotDetailDAO {
      *
      * @return null on success, otherwise a message to show the student
      */
-    public String rateLatestReport(int userId, int spotId, int reportId, String result, double latitude, double longitude) throws SQLException {
+    public String rateLatestReport(int userId, int spotId, int reportId, String result, double latitude,
+            double longitude) throws SQLException {
         // The newest report for the spot. Locked so the check and the insert see the
         // same row.
         // Reports an administrator made inactive are skipped.
@@ -338,7 +339,7 @@ public class SpotDetailDAO {
                 + "VALUES (?, 'verify_report', 'report', ?, ?, NOW())";
 
         try (Connection con = DatabaseConnection.getConnection()) {
-            // student must be within 0.3 miles in order to rate the spot 
+            // student must be within 0.3 miles in order to rate the spot
             if (!isWithinActionDistance(con, spotId, latitude, longitude)) {
                 return "You must be within 0.3 miles of the study spot to rate this report.";
             }
@@ -347,7 +348,8 @@ public class SpotDetailDAO {
                     PreparedStatement studentStmt = con.prepareStatement(studentSql);
                     PreparedStatement verifyStmt = con.prepareStatement(insertVerify);
                     PreparedStatement pointsStmt = con.prepareStatement(addPoints);
-                    PreparedStatement trustStmt = con.prepareStatement("confirmed".equals(result) ? trustUp : trustDown);
+                    PreparedStatement trustStmt = con
+                            .prepareStatement("confirmed".equals(result) ? trustUp : trustDown);
                     PreparedStatement logStmt = con.prepareStatement(insertLog)) {
 
                 int authorId;
@@ -408,7 +410,8 @@ public class SpotDetailDAO {
         }
     }
 
-    public String submitReview(int userId, int spotId, int rating, String reviewText, double latitude,double longitude) throws SQLException {
+    public String submitReview(int userId, int spotId, int rating, String reviewText, double latitude, double longitude)
+            throws SQLException {
 
         if (rating < 1 || rating > 5) {
             return "Rating must be between 1 and 5.";
@@ -424,20 +427,17 @@ public class SpotDetailDAO {
             return "Review must be 255 characters or less.";
         }
 
-        String studentSql =
-                "SELECT user_id FROM students WHERE user_id = ?";
+        String studentSql = "SELECT user_id FROM students WHERE user_id = ?";
 
-        String duplicateSql =
-                "SELECT review_id FROM reviews "
-                + "WHERE user_id = ? AND spot_id = ?";
+        String duplicateSql = "SELECT review_id FROM reviews "
+                + "WHERE user_id = ? AND spot_id = ?"
+                + "AND DATE(created_at) = CURDATE()";
 
-        String insertSql =
-                "INSERT INTO reviews "
+        String insertSql = "INSERT INTO reviews "
                 + "(user_id, spot_id, rating, review_text, created_at, is_visible) "
                 + "VALUES (?, ?, ?, ?, NOW(), 1)";
 
-        String addPointsSql =
-                "UPDATE students "
+        String addPointsSql = "UPDATE students "
                 + "SET points = points + 5 "
                 + "WHERE user_id = ?";
 
@@ -471,7 +471,7 @@ public class SpotDetailDAO {
                     try (ResultSet rs = stmt.executeQuery()) {
                         if (rs.next()) {
                             con.rollback();
-                            return "You already reviewed this study spot.";
+                            return "You already reviewed this study spot today.";
                         }
                     }
                 }
@@ -503,6 +503,7 @@ public class SpotDetailDAO {
             }
         }
     }
+
     // student must be within 0.3 miles of the study spot
     private static final double MAX_ACTION_DISTANCE_METERS = 0.3 * 1609.344;
 
@@ -518,10 +519,10 @@ public class SpotDetailDAO {
         }
 
         String sql = """
-            SELECT latitude, longitude
-            FROM study_spots
-            WHERE spot_id = ? AND is_active = 1
-            """;
+                SELECT latitude, longitude
+                FROM study_spots
+                WHERE spot_id = ? AND is_active = 1
+                """;
 
         try (PreparedStatement stmt = con.prepareStatement(sql)) {
             stmt.setInt(1, spotId);
@@ -538,8 +539,7 @@ public class SpotDetailDAO {
                         userLatitude,
                         userLongitude,
                         spotLatitude,
-                        spotLongitude
-                ) <= MAX_ACTION_DISTANCE_METERS;
+                        spotLongitude) <= MAX_ACTION_DISTANCE_METERS;
             }
         }
     }
