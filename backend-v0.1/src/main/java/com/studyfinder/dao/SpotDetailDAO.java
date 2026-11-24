@@ -237,7 +237,7 @@ public class SpotDetailDAO {
                 + "VALUES (?, 'submit_report', 'report', ?, ?, NOW())";
 
         try (Connection con = DatabaseConnection.getConnection()) {
-            // Reject the review if the user is too far away.
+            // Reject the report if the user is too far away.
             if (!isWithinActionDistance(con, spotId, latitude, longitude)) {
                 return "You must be within 0.3 miles of the study spot to report conditions.";
             }
@@ -410,7 +410,7 @@ public class SpotDetailDAO {
         }
     }
 
-    public String submitReview(int userId, int spotId, int rating, String reviewText, double latitude, double longitude)
+    public String submitReview(int userId, int spotId, int rating, String reviewText)
             throws SQLException {
 
         if (rating < 1 || rating > 5) {
@@ -428,10 +428,11 @@ public class SpotDetailDAO {
         }
 
         String studentSql = "SELECT user_id FROM students WHERE user_id = ?";
-
+        
+        // limits reviews to once per day 
         String duplicateSql = "SELECT review_id FROM reviews "
                 + "WHERE user_id = ? AND spot_id = ?"
-                + "AND DATE(created_at) = CURDATE()";
+                + " AND DATE(created_at) = CURDATE()";
 
         String insertSql = "INSERT INTO reviews "
                 + "(user_id, spot_id, rating, review_text, created_at, is_visible) "
@@ -444,10 +445,11 @@ public class SpotDetailDAO {
         try (Connection con = DatabaseConnection.getConnection()) {
 
             // Reject the review if the user is too far away.
-            if (!isWithinActionDistance(con, spotId, latitude, longitude)) {
-                return "You must be within 0.3 miles of the study spot to leave a review.";
-            }
+            // if (!isWithinActionDistance(con, spotId, latitude, longitude)) {
+            //     return "You must be within 0.3 miles of the study spot to leave a review.";
+            // }
 
+            // starts the database transaction
             con.setAutoCommit(false);
 
             try {
@@ -465,7 +467,8 @@ public class SpotDetailDAO {
 
                 // Prevent duplicate reviews.
                 try (PreparedStatement stmt = con.prepareStatement(duplicateSql)) {
-                    stmt.setInt(1, userId);
+                    // add data to the ? placeholders
+                    stmt.setInt(1, userId); 
                     stmt.setInt(2, spotId);
 
                     try (ResultSet rs = stmt.executeQuery()) {
@@ -507,7 +510,7 @@ public class SpotDetailDAO {
     // student must be within 0.3 miles of the study spot
     private static final double MAX_ACTION_DISTANCE_METERS = 0.3 * 1609.344;
 
-    /** Also used by SpotPhotoDAO so photos follow the same 0.3 mile rule. */
+    /** Used by SpotPhotoDAO so photos follow the same 0.3 mile rule. */
     public boolean isWithinActionDistance(
             Connection con,
             int spotId,

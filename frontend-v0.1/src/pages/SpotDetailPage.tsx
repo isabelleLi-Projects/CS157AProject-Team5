@@ -52,6 +52,11 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
       () => setLocationError('Allow location access to see how far away this spot is.')
     )
   }
+  const reviewedToday = spot.reviews.some(
+    (review) =>
+      review.mine &&
+      new Date(review.createdAt).toDateString() === new Date().toDateString()
+  );
 
   // Show the user's position right away only if they already granted location; don't prompt on load.
   useEffect(() => {
@@ -93,7 +98,7 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
         {tooFar && role === 'student' && (
           <div role="status" className="flash-error text-sm rounded-xl px-4 py-3 mt-3 flex flex-wrap items-center justify-between gap-2">
             <span>
-              You're more than {MAX_ACTION_MILES} miles from this spot, so rating, reporting, and reviewing are turned off.
+              You're more than {MAX_ACTION_MILES} miles from this spot, reporting is turned off.
             </span>
             <button type="button" onClick={requestLocation} className="btn-link text-sm">
               I'm closer now, check again
@@ -312,10 +317,12 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
             </Card>
             
             <Card title="Leave a review">
-              {spot.reviews.some((review) => review.mine) ? (
-                <p className="text-sm text-muted">You already reviewed this spot. You can edit or delete it under Reviews.</p>
+            {reviewedToday ? (
+                <p className="text-sm text-muted">
+                  You already reviewed this spot today. You can submit another review tomorrow.
+                </p>  
               ) : (
-                <ReviewForm spotId={spot.spotId} role={role} locked={tooFar} />
+                <ReviewForm spotId={spot.spotId} role={role} />
               )}
             </Card>
           </div>
@@ -485,11 +492,9 @@ function MyReviewControls({ spotId, review }: { spotId: number; review: SpotRevi
 function ReviewForm({
   spotId,
   role,
-  locked,
 }: {
   spotId: number
   role: string
-  locked: boolean
 }) {
   const [rating, setRating] = useState(0)
 
@@ -525,7 +530,7 @@ function ReviewForm({
             <button
               key={star}
               type="button"
-              disabled={locked}
+              // disabled={locked}
               onClick={() => setRating(star)}
               className={`text-3xl ${
                 star <= rating ? 'text-yellow-500' : 'text-gray-300'
@@ -541,13 +546,12 @@ function ReviewForm({
       <textarea
         name="reviewText"
         required
-        disabled={locked}
         maxLength={255}
         rows={4}
         placeholder="Share your experience at this study spot..."
         className="search-input w-full px-3 py-2 text-sm resize-none"
       />
-      <button type="submit" disabled={locked || rating === 0} className="btn-primary px-4 py-2.5 text-sm disabled:opacity-50">
+      <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
         Submit review
       </button>
     </form>

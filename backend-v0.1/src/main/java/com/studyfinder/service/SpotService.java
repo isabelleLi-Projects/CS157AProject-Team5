@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.mysql.cj.log.Log;
 import com.studyfinder.dao.SpotDetailDAO;
 import com.studyfinder.model.SpotDetail;
 
@@ -130,9 +129,8 @@ public class SpotService {
             int userId,
             int spotId,
             int rating,
-            String reviewText,
-            double latitude,
-            double longitude) throws SQLException {
-        return spotDetailDAO.submitReview(userId, spotId, rating, reviewText, latitude, longitude);
+            String reviewText
+            ) throws SQLException {
+        return spotDetailDAO.submitReview(userId, spotId, rating, reviewText);
     }
 }

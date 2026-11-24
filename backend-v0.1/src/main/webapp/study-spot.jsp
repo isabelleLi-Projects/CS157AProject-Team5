@@ -124,7 +124,7 @@ window.spotDetail = {
 <script>
 document.addEventListener('submit', function (event) {
     const form = event.target;
-    if (!(form instanceof HTMLFormElement)|| (!form.action.includes("review-spot.jsp") && !form.action.includes("report-spot.jsp") && !form.action.includes("rate-spot.jsp") && !form.action.includes("upload-photo.jsp"))) {
+    if (!(form instanceof HTMLFormElement)|| (!form.action.includes("report-spot.jsp") && !form.action.includes("rate-spot.jsp") && !form.action.includes("upload-photo.jsp"))) {
         return;
     }
     event.preventDefault();
@@ -156,6 +156,6 @@ document.addEventListener('submit', function (event) {
     });
 });
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-Cfb2pFeH.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-g1FD4ad4.js"></script>
 </body>
 </html>
