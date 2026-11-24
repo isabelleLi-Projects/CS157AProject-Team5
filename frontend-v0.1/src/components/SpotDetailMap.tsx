@@ -31,7 +31,9 @@ function FitBoth({ latitude, longitude, userLocation }: { latitude: number; long
 }
 
 export default function SpotDetailMap({ name, latitude, longitude, userLocation }: SpotDetailMapProps) {
+  
   const spot: [number, number] = [latitude, longitude]
+  
   return (
     <MapContainer center={spot} zoom={17} style={{ height: '260px', width: '100%' }}>
       <FitBoth latitude={latitude} longitude={longitude} userLocation={userLocation} />
