@@ -79,7 +79,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= spot.getName().replace("<", "&lt;") %> | StudyFinder</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-D29Bf_X6.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-DBevCEsz.css">
 </head>
 <body>
 <div id="root"></div>
@@ -124,7 +124,7 @@ window.spotDetail = {
 <script>
 document.addEventListener('submit', function (event) {
     const form = event.target;
-    if (!(form instanceof HTMLFormElement)|| (!form.action.includes("report-spot.jsp") && !form.action.includes("rate-spot.jsp") && !form.action.includes("upload-photo.jsp"))) {
+    if (!(form instanceof HTMLFormElement)|| (!form.action.includes("report-spot.jsp") && !form.action.includes("rate-spot.jsp"))) {
         return;
     }
     event.preventDefault();
@@ -156,6 +156,6 @@ document.addEventListener('submit', function (event) {
     });
 });
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-g1FD4ad4.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-CmzzFYRC.js"></script>
 </body>
 </html>

@@ -510,7 +510,7 @@ public class SpotDetailDAO {
     // student must be within 0.3 miles of the study spot
     private static final double MAX_ACTION_DISTANCE_METERS = 0.3 * 1609.344;
 
-    /** Used by SpotPhotoDAO so photos follow the same 0.3 mile rule. */
+    /** Used by SpotPhotoDAO */
     public boolean isWithinActionDistance(
             Connection con,
             int spotId,

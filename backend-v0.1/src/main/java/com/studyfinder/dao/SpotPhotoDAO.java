@@ -22,7 +22,7 @@ public class SpotPhotoDAO {
      *
      * @return null on success, otherwise a message to show the student
      */
-    public String addPhoto(int userId, int spotId, double latitude, double longitude, String fileName)
+    public String addPhoto(int userId, int spotId, String fileName)
             throws SQLException {
         String spotSql = "SELECT spot_id FROM study_spots WHERE spot_id = ? AND is_active = 1";
         String studentSql = "SELECT user_id FROM students WHERE user_id = ?";
@@ -33,9 +33,9 @@ public class SpotPhotoDAO {
                 + "VALUES (?, 'add_photo', 'spot', ?, ?, NOW())";
 
         try (Connection con = DatabaseConnection.getConnection()) {
-            if (!new SpotDetailDAO().isWithinActionDistance(con, spotId, latitude, longitude)) {
-                return "You must be within 0.3 miles of the study spot to add a photo.";
-            }
+            // if (!new SpotDetailDAO().isWithinActionDistance(con, spotId, latitude, longitude)) {
+            //     return "You must be within 0.3 miles of the study spot to add a photo.";
+            // }
             con.setAutoCommit(false);
             try (PreparedStatement spotStmt = con.prepareStatement(spotSql);
                     PreparedStatement studentStmt = con.prepareStatement(studentSql);

@@ -7,6 +7,8 @@ import type { SpotDetail, SpotReport, SpotReview } from '../model/SpotDetail'
 import type { UserLocation } from '../model/StudySpot'
 import { distanceInMiles } from '../utils/distance'
 import { mainPageUrl, walkingDirectionsUrl } from '../utils/links'
+import { createPortal } from 'react-dom'
+import { create } from 'domain'
 
 // Study Spot page (Functional Requirement #4). All data comes from window.spotDetail (study-spot.jsp).
 
@@ -109,7 +111,23 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
           {/* Left column: about, conditions + rating, recent reports, reviews */}
           <div className="space-y-6">
             <article className="spot-card rounded-2xl">
-              {spot.img && <img src={spot.img} alt={spot.name} className="spot-image" style={{ height: 280 }} />}
+              {/* {spot.img && <img src={spot.img} alt={spot.name} className="spot-image" style={{ height: 280 }} />} */}
+              <PhotoCarousel
+                photos={[
+                  ...(spot.img
+                    ? [
+                        {
+                          url: spot.img,
+                          firstName: "Study spot",
+                          uploadedAt: "",
+                        },
+                      ]
+                    : []),
+                  ...(spot.photos ?? []),
+                ]}
+                spotName={spot.name}
+              />
+
               <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -181,8 +199,8 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                 </ul>
               </Card>
             )}
-            <Card title="Photos from students">
-              {spot.photos && spot.photos.length > 0 ? (
+            <Card title="Add photos for points">
+              {/* {spot.photos && spot.photos.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {spot.photos.map((photo) => (
                     <a key={photo.url} href={photo.url} target="_blank" rel="noopener noreferrer" className="group block">
@@ -195,8 +213,8 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
                 </div>
               ) : (
                 <p className="text-sm text-muted">No photos yet.</p>
-              )}
-              <AddPhotoForm spotId={spot.spotId} role={role} locked={tooFar} />
+              )} */}
+              <AddPhotoForm spotId={spot.spotId} role={role}/>
             </Card>
 
             <Card title="Reviews">
@@ -332,9 +350,230 @@ export default function SpotDetailPage({ spot }: { spot: SpotDetail }) {
   )
 }
 
+function PhotoCarousel({
+  photos,
+  spotName,
+}: {
+  photos: SpotDetail['photos']
+  spotName: string
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isViewerOpen, setIsViewerOpen] = useState(false)
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+  
+    document.body.style.overflow = isViewerOpen ? 'hidden' : ''
+  
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isViewerOpen])
+
+  if (!photos || photos.length === 0) {
+    return <p className="text-sm text-muted">No photos yet.</p>
+  }
+
+  const currentPhoto = photos[currentIndex]
+
+  const previousPhoto = () => {
+    setCurrentIndex((index) =>
+      index === 0 ? photos.length - 1 : index - 1
+    )
+  }
+
+  const nextPhoto = () => {
+    setCurrentIndex((index) =>
+      index === photos.length - 1 ? 0 : index + 1
+    )
+  }
+
+  return (
+    <>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsViewerOpen(true)}
+          className="block w-full"
+        >
+          <img
+            src={currentPhoto.url}
+            alt={`Photo of ${spotName}`}
+            className="aspect-[4/3] w-full cursor-pointer rounded-xl object-cover"
+          />
+        </button>
+
+        {photos.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={previousPhoto}
+              aria-label="Previous photo"
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-4 py-2 text-2xl text-white"
+            >
+              {'<'}
+            </button>
+
+            <button
+              type="button"
+              onClick={nextPhoto}
+              aria-label="Next photo"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-4 py-2 text-2xl text-white"
+            >
+              {'>'}
+            </button>
+
+            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+              {photos.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setCurrentIndex(index)}
+                  aria-label={`Go to photo ${index + 1}`}
+                  className={`h-2 w-2 rounded-full ${
+                    index === currentIndex ? 'bg-white' : 'bg-white/50'
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {isViewerOpen && createPortal(
+        <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 99999,
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          padding: '24px',
+        }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            onClick={() => setIsViewerOpen(false)}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '24px',
+              zIndex: 10,
+              border: 'none',
+              background: 'transparent',
+              color: 'white',
+              fontSize: '16px',
+              cursor: 'pointer',
+            }}
+          >
+            ← Back to photos
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsViewerOpen(false)}
+            aria-label="Close photo viewer"
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '24px',
+              zIndex: 10,
+              border: 'none',
+              background: 'transparent',
+              color: 'white',
+              fontSize: '16px',
+              lineHeight: 1,
+              cursor: 'pointer',
+            }}
+          >
+            Close X
+          </button>
+          <div
+            style={{
+              position: 'relative',
+              width: '90vw',
+              height: '90vh',
+              maxWidth: '1200px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              borderRadius: '16px',
+              backgroundColor: '#000',
+            }}
+          >
+            <img
+              src={currentPhoto.url}
+              alt={`Enlarged photo of ${spotName}`}
+              style={{
+                maxWidth: '85vw',
+                maxHeight: '85vh',
+                objectFit: 'contain',
+              }}
+            />
+
+            {photos.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={previousPhoto}
+                  aria-label="Previous photo"
+                  style={{
+                    position: 'absolute',
+                    left: '20px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    zIndex: 10,
+                    border: 'none',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    color: '#000',
+                    fontSize: '30px',
+                    padding: '8px 18px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {'<'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={nextPhoto}
+                  aria-label="Next photo"
+                  style={{
+                    position: 'absolute',
+                    right: '20px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    zIndex: 10,
+                    border: 'none',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    color: '#000',
+                    fontSize: '30px',
+                    padding: '8px 18px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {'>'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  )
+}
 // "Add a photo" for students at the spot. The browser shrinks the photo to at most 1280px and
 // sends it as a JPEG to upload-photo.jsp (the location is added by the study-spot.jsp script).
-function AddPhotoForm({ spotId, role, locked }: { spotId: number; role: string; locked: boolean }) {
+function AddPhotoForm({ spotId, role }: { spotId: number; role: string }) {
   const [preview, setPreview] = useState('')
   const [note, setNote] = useState('')
 
@@ -370,12 +609,11 @@ function AddPhotoForm({ spotId, role, locked }: { spotId: number; role: string; 
     <form method="post" action={`${window.studyFinderContext ?? ''}/upload-photo.jsp`} className="mt-4 border-t border-[#e2ddd5] pt-4">
       <input type="hidden" name="spotId" value={spotId} />
       <input type="hidden" name="photo" value={preview} />
-      <label className={`inline-flex items-center gap-2 text-sm ${locked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+      <label className={`inline-flex items-center gap-2 text-sm`}>
         <span className="btn-secondary px-3 py-1.5 text-xs">{preview ? 'Choose a different photo' : 'Add a photo'}</span>
         <input
           type="file"
           accept="image/*"
-          disabled={locked}
           className="hidden"
           onChange={(event) => {
             const file = event.target.files?.[0]
@@ -387,12 +625,12 @@ function AddPhotoForm({ spotId, role, locked }: { spotId: number; role: string; 
       {preview && (
         <div className="mt-3 flex items-end gap-3">
           <img src={preview} alt="Photo to upload" className="h-24 w-24 rounded-lg object-cover" />
-          <button type="submit" disabled={locked} className="btn-primary px-3 py-1.5 text-xs disabled:opacity-50">
+          <button type="submit" className="btn-primary px-3 py-1.5 text-xs">
             Upload photo
           </button>
         </div>
       )}
-      <p className="mt-2 text-[11px] text-muted">You need to be at the spot (within 0.3 miles). Up to 5 photos per spot.</p>
+      <p className="mt-2 text-[11px] text-muted">Up to 5 photos per spot.</p>
     </form>
   )
 }
