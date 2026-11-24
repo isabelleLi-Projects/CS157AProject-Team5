@@ -30,36 +30,70 @@ public class SpotPhotoService {
      *
      * @return null on success, otherwise a message to show the student
      */
-    public String upload(int userId, int spotId, String dataUrl, double latitude, double longitude,
-            String photoDirectory) throws SQLException, IOException {
-        if (dataUrl == null || !dataUrl.startsWith(JPEG_PREFIX)) return "Choose a photo first.";
+    public String upload(
+        int userId,
+        int spotId,
+        String dataUrl,
+        String photoDirectory,
+        String directoryPath
+    ) throws SQLException, IOException {
+
+        if (dataUrl == null || !dataUrl.startsWith(JPEG_PREFIX)) {
+            return "Choose a photo first.";
+        }
+
         byte[] bytes;
+
         try {
-            bytes = Base64.getDecoder().decode(dataUrl.substring(JPEG_PREFIX.length()));
+            bytes = Base64.getDecoder().decode(
+                    dataUrl.substring(JPEG_PREFIX.length())
+            );
         } catch (IllegalArgumentException exception) {
             return "That photo could not be read. Try another one.";
         }
-        // JPEG files start with FF D8 FF.
-        if (bytes.length < 3 || (bytes[0] & 0xFF) != 0xFF || (bytes[1] & 0xFF) != 0xD8 || (bytes[2] & 0xFF) != 0xFF) {
+
+        if (bytes.length < 3
+                || (bytes[0] & 0xFF) != 0xFF
+                || (bytes[1] & 0xFF) != 0xD8
+                || (bytes[2] & 0xFF) != 0xFF) {
             return "That photo could not be read. Try another one.";
         }
-        if (bytes.length > MAX_BYTES) return "That photo is too large. Try a smaller one.";
-        if (photoDirectory == null) throw new IOException("Could not find the photo folder.");
 
-        Path folder = Paths.get(photoDirectory);
-        Files.createDirectories(folder);
+        if (bytes.length > MAX_BYTES) {
+            return "That photo is too large. Try a smaller one.";
+        }
+
+        if (directoryPath == null) {
+            throw new IOException("Could not find the photo folder.");
+        }
+
+        // This is the actual folder served by Tomcat
+        Path uploadDirectory = Paths.get(directoryPath);
+        Files.createDirectories(uploadDirectory);
+
         String fileName = UUID.randomUUID() + ".jpg";
-        Path file = folder.resolve(fileName);
+        Path file = uploadDirectory.resolve(fileName);
+
+        System.out.println("Upload directory: " + uploadDirectory.toAbsolutePath());
+        System.out.println("Destination: " + file.toAbsolutePath());
+
         Files.write(file, bytes);
 
+        System.out.println("File exists: " + Files.exists(file));
+
         String error;
+
         try {
-            error = dao.addPhoto(userId, spotId, latitude, longitude, fileName);
+            error = dao.addPhoto(userId, spotId, fileName);
         } catch (SQLException exception) {
             Files.deleteIfExists(file);
             throw exception;
         }
-        if (error != null) Files.deleteIfExists(file);
+
+        if (error != null) {
+            Files.deleteIfExists(file);
+        }
+
         return error;
     }
 }

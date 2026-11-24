@@ -125,7 +125,6 @@ CREATE TABLE `reviews` (
   `created_at` datetime DEFAULT NULL,
   `is_visible` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`review_id`),
-  UNIQUE KEY `uq_reviews_user_spot` (`user_id`,`spot_id`),
   KEY `fk_reviews_students_idx` (`user_id`),
   KEY `fk_reviews_studyspots_idx` (`spot_id`),
   CONSTRAINT `fk_reviews_students` FOREIGN KEY (`user_id`) REFERENCES `students` (`user_id`),

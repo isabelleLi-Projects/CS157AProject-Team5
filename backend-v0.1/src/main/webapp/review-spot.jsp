@@ -26,25 +26,17 @@
 
     int spotId;
     int rating;
-    double latitude;
-    double longitude;
+ 
 
     try {
         spotId = Integer.parseInt(request.getParameter("spotId"));
         rating = Integer.parseInt(request.getParameter("rating"));
-        latitude = Double.parseDouble(request.getParameter("latitude"));
-        longitude = Double.parseDouble(request.getParameter("longitude"));
     } catch (NumberFormatException exception) {
         response.sendRedirect(
                 context + "/study-spots.jsp?error=Invalid+review+or+location");
         return;
     }
 
-    if (!Double.isFinite(latitude) || !Double.isFinite(longitude)) {
-        response.sendRedirect(
-                context + "/study-spots.jsp?error=Valid+location+is+required");
-        return;
-    }
 
     String back = context + "/study-spot.jsp?id=" + spotId;
 
@@ -53,9 +45,7 @@
                 currentUser.id(),
                 spotId,
                 rating,
-                request.getParameter("reviewText"),
-                latitude,
-                longitude
+                request.getParameter("reviewText")
         );
 
         if (error == null) {
@@ -72,6 +62,7 @@
                     error,
                     StandardCharsets.UTF_8
             );
+            
 
             response.sendRedirect(
                     back + "&error=" + encodedError
@@ -79,7 +70,9 @@
         }
 
     } catch (Exception exception) {
-        log("Review submission failed", exception);
+        
+        log("Review submission failed: " + exception.getMessage(), exception);
+            exception.printStackTrace();
 
         response.sendRedirect(
                 back + "&error=Review+could+not+be+saved"
