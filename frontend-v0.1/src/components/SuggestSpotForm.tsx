@@ -26,8 +26,16 @@ export default function SuggestSpotForm({ onClose }: { onClose: () => void }) {
         setCoordinates(`${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`)
         setTouched(true)
         setLocationNote('')
+      }, 
+      (error) => {
+        console.error("Location error:", error.code, error.message);
+        setLocationNote('Location is off. Allow location access or type the coordinates.')
       },
-      () => setLocationNote('Location is off. Allow location access or type the coordinates.'),
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
     )
   }
 
@@ -99,16 +107,30 @@ export default function SuggestSpotForm({ onClose }: { onClose: () => void }) {
               aria-invalid={touched && Boolean(coordError)}
               className="search-input mt-1 p-3"
             />
-            {touched && coordError ? (
-              <span role="alert" className="mt-1 block text-xs text-[#b83c2a]">
-                {coordError}
-              </span>
-            ) : (
-              <button type="button" onClick={useMyLocation} className="btn-link mt-1 block text-xs">
+            
+               <button
+                type="button"
+                onClick={() => {
+                  console.log('Button clicked');
+                  useMyLocation();
+                }}
+                className="btn-link mt-1 block text-xs"
+              >
                 Use my current location
               </button>
-            )}
-            {locationNote && <span className="mt-1 block text-xs text-muted">{locationNote}</span>}
+
+              {touched && coordError && (
+                <span role="alert" className="mt-1 block text-xs text-[#b83c2a]">
+                  {coordError}
+                </span>
+              )}
+
+              {locationNote && (
+                <span className="mt-1 block text-xs text-muted">
+                  {locationNote}
+                </span>
+              )}
+
           </label>
           <label className="text-sm font-medium text-main sm:col-span-2">
             Description (optional)

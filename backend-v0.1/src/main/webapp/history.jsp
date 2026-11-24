@@ -85,6 +85,6 @@ window.studentHistory = {
   suggestions: <%= jsRows(suggestions) %>
 };
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-B_a3fuMC.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/assets/index-Cfb2pFeH.js"></script>
 </body>
 </html>
