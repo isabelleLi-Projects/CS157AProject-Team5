@@ -51,32 +51,36 @@ export default function RewardDetails({
                     {reward.id != null &&
                         redeemedRewardIds.includes(reward.id) ? (
                         <p className="mt-3">Already redeemed</p>
-                    ) : reward.stock === 0 ? (
-                        <p className="mt-3">Out of stock</p>
-                    ) : points < reward.pts ? (
-                        <p className="mt-3">
-                            You need {reward.pts - points} more points.
-                        </p>
                     ) : (
-                        <form
-                            method="post"
-                            action={`${window.studyFinderContext ?? ''}/redeem.jsp`}
-                            className="mt-3"
-                        >
-                            <input
-                                type="hidden"
-                                name="rewardId"
-                                value={reward.id ?? ''}
-                            />
+                        <>
+                            {reward.stock === 0 ? (
+                                <p className="mt-3">Out of stock</p>
+                            ) : points < reward.pts ? (
+                                <p className="mt-3">
+                                    You need {reward.pts - points} more points.
+                                </p>
+                            ) : null}
 
-                            <button
-                                type="submit"
-                                disabled={!reward.id}
-                                className="btn-primary px-4 py-2 rounded-xl text-sm"
+                            <form
+                                method="post"
+                                action={`${window.studyFinderContext ?? ''}/redeem.jsp`}
+                                className="mt-3"
                             >
-                                Redeem
-                            </button>
-                        </form>
+                                <input
+                                    type="hidden"
+                                    name="rewardId"
+                                    value={reward.id ?? ''}
+                                />
+
+                                <button
+                                    type="submit"
+                                    disabled={!reward.id}
+                                    className="btn-primary px-4 py-2 rounded-xl text-sm"
+                                >
+                                    Redeem
+                                </button>
+                            </form>
+                        </>
                     )}
                 </div>
             ))}
