@@ -114,3 +114,14 @@ body {
 
 .flash-error { background-color: var(--color-tag-red); color: #8c2418; }
 .flash-success { background-color: var(--color-tag-green); color: var(--color-primary); }
+
+/* for the map */
+.leaflet-container {
+  position: relative;
+  z-index: 0 !important; 
+}
+
+header {
+  position: relative;
+  z-index: 50;
+}

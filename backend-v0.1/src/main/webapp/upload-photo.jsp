@@ -15,12 +15,8 @@
         return;
     }
     int spotId;
-    double latitude;
-    double longitude;
     try {
         spotId = Integer.parseInt(request.getParameter("spotId"));
-        latitude = Double.parseDouble(request.getParameter("latitude"));
-        longitude = Double.parseDouble(request.getParameter("longitude"));
     } catch (NumberFormatException | NullPointerException exception) {
         String id = request.getParameter("spotId");
         response.sendRedirect(id != null && id.matches("\\d+")
@@ -34,8 +30,9 @@
         return;
     }
     try {
-        String error = new SpotPhotoService().upload(current.id(), spotId, request.getParameter("photo"),
-                latitude, longitude, application.getRealPath("/assets/spot_photos"));
+        String error = new SpotPhotoService().upload(
+            current.id(), spotId, request.getParameter("photo"), "spot_photos", application.getRealPath("/assets/spot_photos")
+        );
         if (error == null) {
             response.sendRedirect(back + "&message=Thanks!+Your+photo+was+added.");
         } else {
