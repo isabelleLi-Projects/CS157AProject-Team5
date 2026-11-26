@@ -3,7 +3,6 @@ import type { Reward } from '../model/StudySpot'
 type RewardDetailsProps = {
     rewards: Reward[]
     points: number
-    //redeemedRewardIds: number[]
 }
 
 export default function RewardDetails({
@@ -11,72 +10,112 @@ export default function RewardDetails({
     points,
 }: RewardDetailsProps) {
     return (
-        <div className="grid grid-cols-1 gap-4">
-            {rewards.map((reward) => (
-                <div
-                    key={reward.id ?? reward.label}
-                    className="surface-background standard-border rounded-2xl p-5"
-                >
-                    {reward.img ? (
-                        <img
-                            src={reward.img}
-                            alt={reward.label}
-                            className="w-24 h-24 rounded-xl object-cover mb-4"
-                        />
-                    ) : (
-                        <span className="text-4xl">{reward.icon}</span>
-                    )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {rewards.map((reward) => {
+                const pointsNeeded = Math.max(reward.pts - points, 0)
+                const progress = reward.pts > 0
+                    ? Math.min(Math.max((points / reward.pts) * 100, 0), 100)
+                    : 100
 
-                    <h2 className="font-display text-xl text-main">
-                        {reward.label}
-                    </h2>
+                const rewardName = reward.faceValue != null
+                    ? `$${Number(reward.faceValue).toLocaleString('en-US')} ${reward.label}`
+                    : reward.label
 
-                    <p className="text-sm text-muted mt-2">
-                        {reward.description || 'No description available.'}
-                    </p>
-
-                    <p className="text-main mt-3">
-                        Points required: {reward.pts}
-                    </p>
-
-                    <p className="text-muted text-sm mt-1">
-                        Available stock: {reward.stock ?? 'Unknown'}
-                    </p>
-
-                    <p className="text-muted text-sm mt-1">
-                        Your points: {points}
-                    </p>
-
-                    {reward.stock === 0 ? (
-                        <p className="mt-3">Out of stock</p>
-                    ) : points < reward.pts ? (
-                        <p className="mt-3">
-                            You need {reward.pts - points} more points.
-                        </p>
-                    ) : null}
-
-                    <form
-                        method="post"
-                        action={`${window.studyFinderContext ?? ''}/redeem.jsp`}
-                        className="mt-3"
+                return (
+                    <div
+                        key={reward.id ?? reward.label}
+                        className="surface-background standard-border rounded-2xl p-5 flex flex-col shadow-sm hover:shadow-lg transition-shadow"
                     >
-                        <input
-                            type="hidden"
-                            name="rewardId"
-                            value={reward.id ?? ''}
-                        />
+                        {/* Gift card image */}
+                        <div className="w-full aspect-[8/5] mb-4 flex items-center justify-center">
+                            {reward.img ? (
+                                <img
+                                    src={reward.img}
+                                    alt={rewardName}
+                                    className="w-full h-full rounded-xl object-contain"
+                                />
+                            ) : (
+                                <span className="text-6xl">
+                                    {reward.icon}
+                                </span>
+                            )}
+                        </div>
 
-                        <button
-                            type="submit"
-                            disabled={!reward.id}
-                            className="btn-primary px-4 py-2 rounded-xl text-sm"
-                        >
-                            Redeem
-                        </button>
-                    </form>
-                </div>
-            ))
-            }
-        </div >
+                        {/* Reward name and description */}
+                        <h2 className="font-display text-xl text-main">
+                            {rewardName}
+                        </h2>
+
+                        <p className="text-sm text-muted mt-2">
+                            {reward.description || 'No description available.'}
+                        </p>
+
+                        {/* Required points and stock */}
+                        <p className="font-display text-2xl text-primary mt-4">
+                            {reward.pts.toLocaleString()} pts
+                        </p>
+
+                        <p className="text-sm text-muted mt-1">
+                            Available stock: {reward.stock ?? 'Unknown'}
+                        </p>
+
+                        {/* Reward progress */}
+                        <div className="mt-auto pt-5">
+                            <div className="flex justify-between text-xs text-muted mb-2">
+                                <span>
+                                    {points.toLocaleString()} / {reward.pts.toLocaleString()} pts
+                                </span>
+                                <span>{Math.floor(progress)}%</span>
+                            </div>
+
+                            <div className="progress-track h-2 rounded-full overflow-hidden">
+                                <div
+                                    className="progress-fill h-full rounded-full transition-all"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+
+                            {/* Redemption status */}
+                            <div className="mt-3 min-h-[24px]">
+                                {reward.stock === 0 ? (
+                                    <p className="text-sm text-red-600 font-medium">
+                                        Out of stock
+                                    </p>
+                                ) : pointsNeeded > 0 ? (
+                                    <p className="text-sm text-amber-600 font-medium">
+                                        You need {pointsNeeded.toLocaleString()} more points.
+                                    </p>
+                                ) : (
+                                    <p className="text-sm text-green-600 font-medium">
+                                        Ready to redeem!
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Redeem button */}
+                            <form
+                                method="post"
+                                action={`${window.studyFinderContext ?? ''}/redeem.jsp`}
+                                className="mt-4"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="rewardId"
+                                    value={reward.id ?? ''}
+                                />
+
+                                <button
+                                    type="submit"
+                                    disabled={!reward.id}
+                                    className="btn-primary w-full py-3 rounded-xl text-sm font-semibold"
+                                >
+                                    Redeem
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
     )
 }

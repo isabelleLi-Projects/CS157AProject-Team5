@@ -36,6 +36,7 @@ export interface Reward {
   label: string
   pts: number
   description?: string
+  faceValue?: number | null
   stock?: number
   img?: string
 }

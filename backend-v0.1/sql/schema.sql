@@ -139,6 +139,8 @@ CREATE TABLE `rewards` (
   `points_required` int NOT NULL,
   `stock_quantity` int NOT NULL,
   `is_active` tinyint NOT NULL DEFAULT '1',
+  `photo_path` varchar(255) DEFAULT NULL,
+  `face_value` decimal(6,2) DEFAULT NULL,
   PRIMARY KEY (`reward_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
