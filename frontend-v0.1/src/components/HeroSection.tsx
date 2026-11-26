@@ -3,11 +3,12 @@ type HeroSectionProps = {
 }
 
 export default function HeroSection({ isLoggedIn }: HeroSectionProps) {
+  const firstName = window.currentUser?.name?.trim().split(/\s+/)[0] || 'Student'
   return (
     <section className="pt-8 pb-6">
       {isLoggedIn ? (
         <>
-          <p className="text-sm text-muted mb-1">Good afternoon, Isabelle</p>
+          <p className="text-sm text-muted mb-1">Good afternoon, {firstName}</p>
           <h1 className="font-display text-3xl text-main leading-tight">
             Find your perfect <span className="text-primary">study spot</span>
           </h1>
