@@ -301,27 +301,72 @@ export default function MainLayout() {
               </h1>
 
               <p className="text-sm text-muted">
-                Earn points by helping other students and redeem
-                them for rewards.
+                Earn points, unlock rewards, and make campus better together.
               </p>
             </div>
 
             {isLoggedIn ? (
               <>
-                <div className="surface-background standard-border rounded-2xl p-6 mb-6">
-                  <p className="text-sm text-muted">
-                    Your Points
-                  </p>
+                <div className="primary-background rounded-2xl p-6 sm:p-8 mb-8 text-white">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                    <div>
+                      <p className="text-sm text-white/80 uppercase tracking-wide">
+                        Your Available Points
+                      </p>
 
-                  <p className="font-display text-4xl text-primary mt-1">
-                    {window.studentPoints ?? 0}
-                  </p>
+                      <p className="font-display text-5xl mt-2">
+                        {(window.studentPoints ?? 0).toLocaleString()}
+                        <span className="text-xl ml-2">pts</span>
+                      </p>
 
-                  <p className="text-xs text-muted mt-2">
-                    Submit reports and verify other students'
-                    reports to earn more points.
-                  </p>
+                      <p className="text-sm text-white/80 mt-3">
+                        Keep contributing to unlock more exciting rewards!
+                      </p>
+                    </div>
+
+                    <div className="sm:text-right">
+                      <button
+                        type="button"
+                        onClick={() => navigateTo('Find Spots')}
+                        className="bg-white text-primary px-5 py-3 rounded-xl text-sm font-semibold"
+                      >
+                        Find Study Spots →
+                      </button>
+                    </div>
+                  </div>
                 </div>
+
+                <div className="surface-background standard-border rounded-2xl p-5 mb-8">
+                  <h2 className="font-display text-lg text-main mb-3">
+                    Make a Difference on Campus
+                  </h2>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                    <div>
+                      <span className="text-3xl">📝</span>
+                      <p className="text-sm text-main mt-2">Submit Reports</p>
+                    </div>
+
+                    <div>
+                      <span className="text-3xl">✅</span>
+                      <p className="text-sm text-main mt-2">Verify Reports</p>
+                    </div>
+
+                    <div>
+                      <span className="text-3xl">📸</span>
+                      <p className="text-sm text-main mt-2">Add Photos</p>
+                    </div>
+
+                    <div>
+                      <span className="text-3xl">📍</span>
+                      <p className="text-sm text-main mt-2">Suggest Study Spots</p>
+                    </div>
+                  </div>
+                </div>
+
+                <h2 className="font-display text-2xl text-main mb-4">
+                  Explore Rewards
+                </h2>
 
                 <RewardDetails
                   points={window.studentPoints ?? 0}

@@ -28,11 +28,19 @@ type DatabaseStudySpot = {
 declare global {
   interface Window {
     studySpots?: DatabaseStudySpot[]
-    rewards?: Array<{ id: number; label: string; description?: string; pts: number; stock: number }>
+    rewards?: Array<{
+      id: number;
+      label: string;
+      description?: string;
+      pts: number;
+      stock: number;
+      faceValue?: number | null;
+      img?: string;
+    }>
     studentPoints?: number
     redeemedRewardIds?: number[]
     studyFinderContext?: string
-    currentUser?: {id: number | null; name: string; email:string; role: string}
+    currentUser?: { id: number | null; name: string; email: string; role: string }
   }
 }
 

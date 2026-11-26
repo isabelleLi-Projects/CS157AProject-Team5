@@ -172,16 +172,20 @@ INSERT INTO `reviews` VALUES (1,1,1,NULL,'Convenient location with many tables.'
 (9,9,9,NULL,'Good computers and plenty of desk space.','2026-09-24 11:00:00',1),
 (10,10,10,NULL,'Bright room with a calm atmosphere.','2026-09-24 16:30:00',1);
 
-INSERT INTO `rewards` VALUES (1,'Amazon Gift Card','Digital gift card for Amazon purchases.',500,25,1),
-(2,'Target Gift Card','Gift card for Target purchases.',500,25,1),
-(3,'Starbucks Gift Card','Gift card for Starbucks beverages.',300,40,1),
-(4,'Safeway Gift Card','Gift card for groceries at Safeway.',750,20,1),
-(5,'Chipotle Gift Card','Gift card for a Chipotle meal.',400,30,1),
-(6,'In-N-Out Gift Card','Gift card for an In-N-Out meal.',400,30,1),
-(7,'Barnes and Noble Gift Card','Gift card for books and school supplies.',600,20,1),
-(8,'DoorDash Gift Card','Gift card for food delivery.',800,15,1),
-(9,'Jamba Gift Card','Gift card for a smoothie or snack.',300,35,1),
-(10,'Safeway Coffee Gift Card','Gift card for coffee and refreshments.',250,40,1);
+INSERT INTO `rewards`
+(`reward_id`, `reward_name`, `description`, `points_required`,
+ `stock_quantity`, `is_active`, `photo_path`, `face_value`)
+VALUES
+(1,'Amazon Gift Card','Digital gift card for Amazon purchases.',500,25,1,'amazon.png',10.00),
+(2,'Target Gift Card','Gift card for Target purchases.',500,25,1,'target.png',10.00),
+(3,'Starbucks Gift Card','Gift card for Starbucks beverages.',300,40,1,'starbucks.png',6.00),
+(4,'Safeway Gift Card','Gift card for groceries at Safeway.',750,20,1,'safeway.png',15.00),
+(5,'Chipotle Gift Card','Gift card for a Chipotle meal.',400,30,1,'chipotle.png',8.00),
+(6,'In-N-Out Gift Card','Gift card for an In-N-Out meal.',400,30,1,'in-n-out.png',8.00),
+(7,'Barnes and Noble Gift Card','Gift card for books and school supplies.',600,20,1,'barnes-noble.png',12.00),
+(8,'DoorDash Gift Card','Gift card for food delivery.',800,15,1,'doordash.png',16.00),
+(9,'Jamba Gift Card','Gift card for a smoothie or snack.',300,35,1,'jamba.png',6.00),
+(10,'Safeway Coffee Gift Card','Gift card for coffee and refreshments.',250,40,1,'safeway-coffee.png',5.00);
 
 INSERT INTO `students` VALUES (1,'100001',1,245,92),
 (2,'100002',1,180,88),
