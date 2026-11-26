@@ -103,6 +103,11 @@ export default function MainLayout() {
   const navigateTo = (nav: string) => {
     setActiveNav(nav)
 
+    // Update the URL when changing pages.
+    const url = new URL(window.location.href)
+    url.searchParams.set('nav', nav)
+    window.history.replaceState(null, '', url.toString())
+
     // Optional: scroll back to the top when changing pages
     window.scrollTo({
       top: 0,
@@ -122,7 +127,7 @@ export default function MainLayout() {
       />
 
       <main className="px-6 pb-16">
-        <FlashBanner />
+        <FlashBanner key={activeNav} />
 
         {/* =========================
             HOME PAGE
