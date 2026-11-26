@@ -3,13 +3,12 @@ import type { Reward } from '../model/StudySpot'
 type RewardDetailsProps = {
     rewards: Reward[]
     points: number
-    redeemedRewardIds: number[]
+    //redeemedRewardIds: number[]
 }
 
 export default function RewardDetails({
     rewards,
     points,
-    redeemedRewardIds
 }: RewardDetailsProps) {
     return (
         <div className="grid grid-cols-1 gap-4">
@@ -48,42 +47,36 @@ export default function RewardDetails({
                         Your points: {points}
                     </p>
 
-                    {reward.id != null &&
-                        redeemedRewardIds.includes(reward.id) ? (
-                        <p className="mt-3">Already redeemed</p>
-                    ) : (
-                        <>
-                            {reward.stock === 0 ? (
-                                <p className="mt-3">Out of stock</p>
-                            ) : points < reward.pts ? (
-                                <p className="mt-3">
-                                    You need {reward.pts - points} more points.
-                                </p>
-                            ) : null}
+                    {reward.stock === 0 ? (
+                        <p className="mt-3">Out of stock</p>
+                    ) : points < reward.pts ? (
+                        <p className="mt-3">
+                            You need {reward.pts - points} more points.
+                        </p>
+                    ) : null}
 
-                            <form
-                                method="post"
-                                action={`${window.studyFinderContext ?? ''}/redeem.jsp`}
-                                className="mt-3"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="rewardId"
-                                    value={reward.id ?? ''}
-                                />
+                    <form
+                        method="post"
+                        action={`${window.studyFinderContext ?? ''}/redeem.jsp`}
+                        className="mt-3"
+                    >
+                        <input
+                            type="hidden"
+                            name="rewardId"
+                            value={reward.id ?? ''}
+                        />
 
-                                <button
-                                    type="submit"
-                                    disabled={!reward.id}
-                                    className="btn-primary px-4 py-2 rounded-xl text-sm"
-                                >
-                                    Redeem
-                                </button>
-                            </form>
-                        </>
-                    )}
+                        <button
+                            type="submit"
+                            disabled={!reward.id}
+                            className="btn-primary px-4 py-2 rounded-xl text-sm"
+                        >
+                            Redeem
+                        </button>
+                    </form>
                 </div>
-            ))}
-        </div>
+            ))
+            }
+        </div >
     )
 }
