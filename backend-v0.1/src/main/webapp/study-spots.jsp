@@ -116,7 +116,7 @@
 %>
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>StudyFinder Study Spots</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-eiugfLLS.css"></head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/index-kyKOs7am.css"></head>
 <body>
 <% if (databaseError != null) { %><p style="padding:1rem;color:#9b1c1c;"><%= databaseError %></p><% } %>
 <div id="root"></div>
@@ -210,9 +210,12 @@ for (int i = 0; i < rewards.size(); i++) {
 }<%= i + 1 < rewards.size() ? "," : "" %>
 <%}%>];
 
+
+
 window.reviews = [<% for (int i=0;i<reviews.size();i++) { Map<String,Object> row=reviews.get(i); %>{userId:<%= row.get("user_id") %>,spotId:<%= row.get("spot_id") %>,reviewText:"<%= js((String) row.get("review_text")) %>",visible:<%= row.get("is_visible") %>}<%= i+1<reviews.size()?",":"" %><% } %>];
 window.activityLogs = [<% for (int i=0;i<activityLogs.size();i++) { Map<String,Object> row=activityLogs.get(i); %>{userId:<%= row.get("user_id") %>,actionType:"<%= js((String) row.get("action_type")) %>",targetType:"<%= js((String) row.get("target_type")) %>",targetId:<%= row.get("target_id") == null ? "null" : row.get("target_id") %>}<%= i+1<activityLogs.size()?",":"" %><% } %>];
 window.verifications = [<% for (int i=0;i<verifications.size();i++) { Map<String,Object> row=verifications.get(i); %>{reportId:<%= row.get("report_id") %>,userId:<%= row.get("user_id") %>,result:"<%= js((String) row.get("result")) %>"}<%= i+1<verifications.size()?",":"" %><% } %>];
 </script>
-<script type="module" src="${pageContext.request.contextPath}/assets/index-C_N8WHPj.js"></script>
+
+<script type="module" src="${pageContext.request.contextPath}/assets/index-CFV_eMGx.js"></script>
 </body></html>

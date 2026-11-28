@@ -21,6 +21,7 @@ export default function RewardsPreview({ points, rewards, onViewRewards }: Rewar
   const progress = Math.min((points / nextReward.pts) * 100, 100)
 
 
+
   return (
     <section className="mb-8 primary-background rounded-2xl p-5 text-white relative overflow-hidden">
       <div className="absolute right-4 top-4 text-6xl opacity-10 select-none">🎓</div>
@@ -46,18 +47,51 @@ export default function RewardsPreview({ points, rewards, onViewRewards }: Rewar
         </div>
       </div>
 
-      <div className="flex gap-2">
-        {rewards.map((reward) => (
-          <form key={reward.label} method="post" action={`${window.studyFinderContext ?? ''}/redeem.jsp`} className="reward-background flex-1 rounded-xl p-2 text-center">
-            <input type="hidden" name="rewardId" value={reward.id ?? ''} />
-            {/* using the reward's photo_path if it exists */}
-            {reward.img ? (<img src={reward.img} alt={reward.label} className="mx-auto h-16 w-16 rounded-lg object-cover" />) : (
-              <span className="text-base">{reward.icon}</span>
-            )}
-            <p className="text-[9px] text-white/70 mt-0.5">{reward.pts} pts</p>
-            <button type="submit" disabled={!reward.id || reward.stock === 0 || points < reward.pts} className="text-[10px] underline mt-1 disabled:opacity-40">Redeem</button>
-          </form>
-        ))}
+      <div className="flex gap-4 overflow-x-auto pb-3">
+        {rewards.map((reward) => {
+          const outOfStock = reward.stock != null && reward.stock <= 0
+          const cannotAfford = points < reward.pts
+          const unavailable = outOfStock || cannotAfford
+          const pointsNeeded = Math.max(reward.pts - points, 0)
+          return (
+            <div
+              key={reward.label} 
+              className={`reward-background flex flex-col w-[38%] sm:w-[28%] md:w-[22%] shrink-0 rounded-xl p-2 text-center ${
+                outOfStock ? 'opacity-50 grayscale' : ''
+              }`}
+            >
+              <form 
+                method="post" 
+                action={`${window.studyFinderContext ?? ''}/redeem.jsp`} 
+                className="flex flex-1 flex-col"
+              >
+                <input type="hidden" name="rewardId" value={reward.id ?? ''} />
+                {/* using the reward's photo_path if it exists */}
+                {reward.img ? (<img src={reward.img} alt={reward.label} className="mx-auto h-24 w-24 rounded-lg object-contain" />) : (
+                  <span className="text-base">{reward.icon}</span>
+                )}
+                <p className="text-[9px] text-white/70 mt-0.5">{reward.pts} pts</p>
+                <button
+                  type="submit"
+                  disabled={!reward.id || unavailable}
+                  className={`mt-2 whitespace-nowrap rounded-full px-1 py-1 text-[9px] font-semibold transition ${
+                    unavailable
+                      ? 'cursor-not-allowed bg-white/30 text-white/60'
+                      : 'bg-[#f4c95d] text-[#245236] shadow-md hover:bg-[#ffd978] hover:shadow-lg active:scale-95'
+                  }`}
+                >
+                  {outOfStock ? (
+                    'Out of stock'
+                  ) : cannotAfford ? (
+                    `Need ${pointsNeeded} more points`
+                  ) : (
+                    <span className="underline">Redeem</span>
+                  )}
+                </button>
+              </form>
+            </div>
+          )
+        })}
       </div>
     </section>
   )
