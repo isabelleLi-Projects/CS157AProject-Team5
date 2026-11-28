@@ -1,4 +1,5 @@
 import spartan from '../assets/logo/spartan.png'
+import ProfileMenu from './ProfileMenu'
 
 type HeaderProps = {
   isLoggedIn: boolean
@@ -16,19 +17,19 @@ export default function Header({
   onLoginToggle,
 }: HeaderProps) {
   return (
-    <nav className="surface-background standard-border sticky top-0 z-50 border-x-0 border-t-0">
+    <nav className="surface-background standard-border sticky top-0 border-x-0 border-t-0" style={{zIndex: 1000,}}>
       <div className="px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <img src={spartan} alt="Spartan logo" className="logo-image" />
-          <span className="font-display text-lg text-primary">SJSU Study Finder</span>
+          <span className="font-display text-2xl text-primary">SJSU Study Finder</span>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-18">
           {NAV_ITEMS.map((link) => (
             <button
               key={link}
               onClick={() => onNavChange(link)}
-              className={`px-6 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-6 py-1.5 rounded-lg text-lg font-medium transition-colors ${
                 activeNav === link
                   ? 'primary-background'
                   : 'text-secondary hover:bg-[#f7f4ef]'
@@ -39,9 +40,14 @@ export default function Header({
           ))}
         </div>
 
-        <button onClick={onLoginToggle} className="btn-link text-sm">
-          {isLoggedIn ? 'Log out' : 'Log in'}
-        </button>
+        {/* Logged in: profile icon with Edit profile / Log out. Guests: Log in link. */}
+        {isLoggedIn ? (
+          <ProfileMenu />
+        ) : (
+          <button onClick={onLoginToggle} className="btn-link text-base">
+            Log in
+          </button>
+        )}
       </div>
     </nav>
   )

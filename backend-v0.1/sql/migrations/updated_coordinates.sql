@@ -1,0 +1,10 @@
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.3344196', `longitude` = '-121.879664' WHERE (`spot_id` = '8');
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.335075', `longitude` = '-121.881509' WHERE (`spot_id` = '7');
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.334395', `longitude` = '-121.884622' WHERE (`spot_id` = '6');
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.336604', `longitude` = '-121.878783' WHERE (`spot_id` = '5');
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.336892', `longitude` = '-121.881121' WHERE (`spot_id` = '4');
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.334229', `longitude` = '-121.878781' WHERE (`spot_id` = '3');
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.336280', `longitude` = '-121.881466' WHERE (`spot_id` = '2');
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.335713', `longitude` = '-121.885118' WHERE (`spot_id` = '1');
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.339207', `longitude` = '-121.881076' WHERE (`spot_id` = '9');
+UPDATE `studyfinder`.`study_spots` SET `latitude` = '37.336079', `longitude` = '-121.883355' WHERE (`spot_id` = '10');

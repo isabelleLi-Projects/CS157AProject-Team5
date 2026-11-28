@@ -3,13 +3,24 @@ import type { Reward } from '../model/StudySpot'
 type RewardsPreviewProps = {
   points: number
   rewards: Reward[]
+  //redeemedRewardIds: number[]
   onViewRewards: () => void
 }
 
 export default function RewardsPreview({ points, rewards, onViewRewards }: RewardsPreviewProps) {
-  const nextReward = rewards[0]
-  const ptsToNext = nextReward.pts - points
+  // Remove rewards that the student has already redeemed.
+  //const unredeemedRewards = rewards.filter((reward) => reward.id == null || !redeemedRewardIds.includes(reward.id))
+  // Ignore rewards that are out of stock.
+  const availableRewards = rewards.filter((reward) => reward.stock == null || reward.stock > 0)
+  // Choose the cheapest reward the student can currently afford.
+  const affordableReward = availableRewards.find((reward) => points >= reward.pts)
+  const nextReward = affordableReward ?? availableRewards[0] ?? { label: 'No rewards available', pts: 0, }
+  const canRedeem = affordableReward !== undefined
+  const rewardStatus = canRedeem ? 'Redeem:' : 'Next: Redeem'
+  const ptsToNext = canRedeem ? 0 : Math.max(nextReward.pts - points, 0)
   const progress = Math.min((points / nextReward.pts) * 100, 100)
+
+
 
   return (
     <section className="mb-8 primary-background rounded-2xl p-5 text-white relative overflow-hidden">
@@ -26,7 +37,9 @@ export default function RewardsPreview({ points, rewards, onViewRewards }: Rewar
 
       <div className="mb-3">
         <div className="flex justify-between text-xs text-white/70 mb-1.5">
-          <span>Next: {nextReward.label}</span>
+          {/* <span>Next: {nextReward.label}</span>
+          <span>{ptsToNext} pts away</span> */}
+          <span> {rewardStatus} {nextReward.label} </span>
           <span>{ptsToNext} pts away</span>
         </div>
         <div className="progress-track h-1.5">
@@ -34,13 +47,51 @@ export default function RewardsPreview({ points, rewards, onViewRewards }: Rewar
         </div>
       </div>
 
-      <div className="flex gap-2">
-        {rewards.map((reward) => (
-          <div key={reward.label} className="reward-background flex-1 rounded-xl p-2 text-center">
-            <span className="text-base">{reward.icon}</span>
-            <p className="text-[9px] text-white/70 mt-0.5">{reward.pts} pts</p>
-          </div>
-        ))}
+      <div className="flex gap-4 overflow-x-auto pb-3">
+        {rewards.map((reward) => {
+          const outOfStock = reward.stock != null && reward.stock <= 0
+          const cannotAfford = points < reward.pts
+          const unavailable = outOfStock || cannotAfford
+          const pointsNeeded = Math.max(reward.pts - points, 0)
+          return (
+            <div
+              key={reward.label} 
+              className={`reward-background flex flex-col w-[38%] sm:w-[28%] md:w-[22%] shrink-0 rounded-xl p-2 text-center ${
+                outOfStock ? 'opacity-50 grayscale' : ''
+              }`}
+            >
+              <form 
+                method="post" 
+                action={`${window.studyFinderContext ?? ''}/redeem.jsp`} 
+                className="flex flex-1 flex-col"
+              >
+                <input type="hidden" name="rewardId" value={reward.id ?? ''} />
+                {/* using the reward's photo_path if it exists */}
+                {reward.img ? (<img src={reward.img} alt={reward.label} className="mx-auto h-24 w-24 rounded-lg object-contain" />) : (
+                  <span className="text-base">{reward.icon}</span>
+                )}
+                <p className="text-[9px] text-white/70 mt-0.5">{reward.pts} pts</p>
+                <button
+                  type="submit"
+                  disabled={!reward.id || unavailable}
+                  className={`mt-2 whitespace-nowrap rounded-full px-1 py-1 text-[9px] font-semibold transition ${
+                    unavailable
+                      ? 'cursor-not-allowed bg-white/30 text-white/60'
+                      : 'bg-[#f4c95d] text-[#245236] shadow-md hover:bg-[#ffd978] hover:shadow-lg active:scale-95'
+                  }`}
+                >
+                  {outOfStock ? (
+                    'Out of stock'
+                  ) : cannotAfford ? (
+                    `Need ${pointsNeeded} more points`
+                  ) : (
+                    <span className="underline">Redeem</span>
+                  )}
+                </button>
+              </form>
+            </div>
+          )
+        })}
       </div>
     </section>
   )

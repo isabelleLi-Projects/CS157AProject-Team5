@@ -21,3 +21,4 @@ logs/
 /.plugins/
 /.opencode-skills/
 target/
+/.metadata/
